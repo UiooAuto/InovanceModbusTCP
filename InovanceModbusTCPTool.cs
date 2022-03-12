@@ -184,7 +184,7 @@ namespace InovanceModbusTCP
                 }
                 else
                 {
-                    //recData = null;
+                    recData = null;
                 }
             }
         }
@@ -235,7 +235,6 @@ namespace InovanceModbusTCP
 
             RequestCmd cmd = new RequestCMDRead(slaveNum, CmdCode.ReadBooleanQ, startAddress, reqNum);//创建请求报文
             CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
-            checkRes.ReuqestSessionNum = slaveNum;//给检查响应目标对象赋会话编号值
             bool v = SendTo(cmd);//发送请求
             Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
             checkThread.IsBackground = true;
@@ -249,7 +248,7 @@ namespace InovanceModbusTCP
             }
             byte[] resultByte = new byte[checkRes.Respones.data[8]];//如果查找成功，则新建结果数组
             Array.ConstrainedCopy(checkRes.Respones.data, 9, resultByte, 0, checkRes.Respones.data[8]);//从结果报文中获取结果内容
-            readResult.data = ByteToBool(resultByte, checkRes.Respones.data[8]);//将byte数组的结果转换为bool数组
+            readResult.data = ByteToBool(resultByte, reqNum);//将byte数组的结果转换为bool数组
             return readResult;
         }
 

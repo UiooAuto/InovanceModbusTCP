@@ -13,7 +13,6 @@ namespace InovanceModbusTCP
 {
     public partial class Form1 : Form
     {
-        Test t = new Test();
         InovanceModbusTCPTool plc = new InovanceModbusTCPTool("127.0.0.1", 502);
         public Form1()
         {
@@ -27,20 +26,38 @@ namespace InovanceModbusTCP
         private void button1_Click(object sender, EventArgs e)
         {
             plc.Connect();
+            /*Thread thread = new Thread(go);
+            thread.IsBackground = true;
+            thread.Start();*/
             /*Thread thread = new Thread(go2);
             thread.IsBackground = true;
             thread.Start();*/
         }
         private void button2_Click(object sender, EventArgs e)
         {
-            ReadResult<bool> readResult = plc.ReadBoolean(0, 100);
+            ReadResult<bool[]> readResult = plc.ReadBoolean(0, 100, 17);
             if (!readResult.success)
             {
                 show(listBox1, "失败");
             }
             else
             {
-                show(listBox1, readResult.data.ToString());
+                MessageBox.Show(Newtonsoft.Json.JsonConvert.SerializeObject(readResult.data));
+                show(listBox1, Newtonsoft.Json.JsonConvert.SerializeObject(readResult.data));
+            }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            show(listBox2, "按下");
+            ReadResult<bool> readResult = plc.ReadBoolean(0, 100);
+            if (!readResult.success)
+            {
+                show(listBox2, "失败");
+            }
+            else
+            {
+                show(listBox2, readResult.data.ToString());
             }
         }
 
@@ -48,7 +65,7 @@ namespace InovanceModbusTCP
         {
             while (true)
             {
-                show(listBox1, t.covn()); 
+                show(listBox1, plc.ReadBoolean(0, 100).data.ToString()); 
             }
         }
         public void go2()
@@ -56,7 +73,7 @@ namespace InovanceModbusTCP
             /*while (true)
             {*/
             show(listBox2, "按下");
-            show(listBox2, t.covn());
+            //show(listBox2, t.covn());
             /*}*/
         }
 
@@ -65,5 +82,6 @@ namespace InovanceModbusTCP
 
             listbox.Items.Add(DateTime.Now.ToString("HH:mm:ss.fff") + "-" + str);
         }
+
     }
 }
