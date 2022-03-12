@@ -35,14 +35,14 @@ namespace InovanceModbusTCP
         }
         private void button2_Click(object sender, EventArgs e)
         {
-            ReadResult<bool[]> readResult = plc.ReadBoolean(0, 100, 17);
+            ReadResult<UInt16[]> readResult = plc.ReadWordM(0, 100, 4);
             if (!readResult.success)
             {
                 show(listBox1, "失败");
             }
             else
             {
-                MessageBox.Show(Newtonsoft.Json.JsonConvert.SerializeObject(readResult.data));
+                //MessageBox.Show(Newtonsoft.Json.JsonConvert.SerializeObject(readResult.data));
                 show(listBox1, Newtonsoft.Json.JsonConvert.SerializeObject(readResult.data));
             }
         }
@@ -50,7 +50,7 @@ namespace InovanceModbusTCP
         private void button3_Click(object sender, EventArgs e)
         {
             show(listBox2, "按下");
-            ReadResult<bool> readResult = plc.ReadBoolean(0, 100);
+            ReadResult<UInt16> readResult = plc.ReadWordM(0, 100);
             if (!readResult.success)
             {
                 show(listBox2, "失败");
@@ -65,7 +65,7 @@ namespace InovanceModbusTCP
         {
             while (true)
             {
-                show(listBox1, plc.ReadBoolean(0, 100).data.ToString()); 
+                show(listBox1, plc.ReadBooleanQ(0, 100).data.ToString()); 
             }
         }
         public void go2()
