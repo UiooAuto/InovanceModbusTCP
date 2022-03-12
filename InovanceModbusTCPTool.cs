@@ -18,18 +18,12 @@ namespace InovanceModbusTCP
         private IPEndPoint ipEndPoint;//服务器的通信节点
         private Thread readThread;//接受响应线程
         private Ping ping;//测试网络连接状态
-        private int overTime = 1000;//ping的超时时间
+        private int overTime = 10000;//ping的超时时间
         private int recLength;//接收到的数据长度
         private int recSessionNum;//接收到的会话号
         private byte[] recData;//接收到的数据包
 
-        private static UInt16 ComSessionNum = 0;//生成用公共会话编号
-        private UInt16 sessionNum;//会话编号
-        private UInt16 tag;//modbusTCP表示符 0
-        private UInt16 length;//后续报文的字节长度
-        private byte slaveNum;//从站号
-        private CmdCode cmdCode;//命令码
-        private UInt16 startAddress;//起始地址
+        public static UInt16 ComSessionNum = 0;//生成用公共会话编号
 
         #region 构造方法及GetSet
 
@@ -106,7 +100,9 @@ namespace InovanceModbusTCP
                 //MessageBox.Show(e.Message);
                 return false;
             }
-
+            readThread = new Thread(ReceiveFrom);
+            readThread.IsBackground = true;
+            readThread.Start();
             return true;
         }
 
@@ -146,7 +142,7 @@ namespace InovanceModbusTCP
             return ComSessionNum++;
         }
 
-        private bool SendTo(IRequestCmd cmd)
+        private bool SendTo(RequestCmd cmd)
         {
             bool success = false;
             int v;
@@ -170,17 +166,125 @@ namespace InovanceModbusTCP
 
         private void ReceiveFrom()
         {
-
+            while (true)
+            {
+                byte[] buffer = new byte[4096];
+                int v = 0;
+                try
+                {
+                    v = socket.Receive(buffer);
+                }
+                catch (Exception)
+                {
+                }
+                if (v != 0)
+                {
+                    recData = new byte[v];
+                    Array.ConstrainedCopy(buffer, 0, recData, 0, v);
+                }
+                else
+                {
+                    //recData = null;
+                }
+            }
         }
 
-        public ReadResult<bool> ReadBoolean(byte slaveNum, ushort startAddress, ushort reqNum)
+        private void CheckRespones(Object o)
         {
-            ReadResult<bool> readResult = new ReadResult<bool>();
+            CheckRes checkRes = (CheckRes)o;
+            while (true)
+            {
+                if (recData != null && checkRes != null)
+                {
+                    Respones respones = new Respones(recData);
+                    if (checkRes.ReuqestSessionNum == respones.recSessionNum)
+                    {
+                        checkRes.Respones = respones;
+                        checkRes.FindSuccess = true;
+                        return;
+                    }
+                }
+            }
+        }
 
-            IRequestCmd cmd = new RequestCMDRead(slaveNum, CmdCode.ReadBooleanQ, startAddress, reqNum);
-            bool v = SendTo(cmd);
+        public ReadResult<bool> ReadBoolean(byte slaveNum, ushort startAddress)
+        {
+            ReadResult<bool> readResult = new ReadResult<bool>();//预备结果
 
+            RequestCmd cmd = new RequestCMDRead(slaveNum, CmdCode.ReadBooleanQ, startAddress, 1);//创建请求报文
+            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
+            bool v = SendTo(cmd);//发送请求
+            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
+            checkThread.IsBackground = true;
+            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
+            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
+
+            readResult.success = checkRes.FindSuccess;
+            if (!checkRes.FindSuccess)
+            {
+                checkThread.Abort();
+                return readResult;
+            }
+
+            readResult.data = ByteToBool(checkRes.Respones.data[9]);
             return readResult;
+        }
+        public ReadResult<bool[]> ReadBoolean(byte slaveNum, ushort startAddress, ushort reqNum)
+        {
+            ReadResult<bool[]> readResult = new ReadResult<bool[]>();//预备结果
+
+            RequestCmd cmd = new RequestCMDRead(slaveNum, CmdCode.ReadBooleanQ, startAddress, reqNum);//创建请求报文
+            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
+            checkRes.ReuqestSessionNum = slaveNum;//给检查响应目标对象赋会话编号值
+            bool v = SendTo(cmd);//发送请求
+            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
+            checkThread.IsBackground = true;
+            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
+            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
+
+            readResult.success = checkRes.FindSuccess;//结果查找成功
+            if (!checkRes.FindSuccess)//如果查找不成功则直接返回失败结果
+            {
+                return readResult;
+            }
+            byte[] resultByte = new byte[checkRes.Respones.data[8]];//如果查找成功，则新建结果数组
+            Array.ConstrainedCopy(checkRes.Respones.data, 9, resultByte, 0, checkRes.Respones.data[8]);//从结果报文中获取结果内容
+            readResult.data = ByteToBool(resultByte, checkRes.Respones.data[8]);//将byte数组的结果转换为bool数组
+            return readResult;
+        }
+
+        public bool ByteToBool(byte value)
+        {
+            return value == 0? false : true;
+        }
+        
+        public bool[] ByteToBool(byte[] bytes, int num)
+        {
+            bool[] bools = new bool[num];
+
+            for (int i = 0; i < bytes.Length; i++)//遍历所有数组
+            {
+                if (i != num / 8)//计算整字节数量，比较是否是最后一个字节
+                {
+                    byte tool = 0x01;//用于位与的工具数字
+                    for (int j = 0; j < 8; j++)//遍历本byte中的每一位
+                    {
+                        bools[j + (i * 8)] = ByteToBool((byte)(bytes[i] & tool));//工具数与要检查的byte位与后仅保留1位，转化为bool值后赋给结果
+                        tool = (byte)(tool << 1);
+                    }
+                }
+                else
+                {
+                    byte tool = 0x01;//用于位与的工具数字
+                    for (int j = 0; j < num % 8; j++)//遍历本byte中的每一位
+                    {
+                        bools[j + (i * 8)] = ByteToBool((byte)(bytes[i] & tool));//工具数与要检查的byte位与后仅保留1位，转化为bool值后赋给结果
+                        tool = (byte)(tool << 1);
+                    }
+                }
+            }
+
+            return bools;
         }
     }
 
@@ -196,7 +300,7 @@ namespace InovanceModbusTCP
         }
     }
 
-    enum CmdCode : byte
+    public enum CmdCode : byte
     {
         //命令码
         ReadBooleanQ = 0x01,//读线圈Q
@@ -218,23 +322,27 @@ namespace InovanceModbusTCP
         WriteMoreWordSD = 0x40//写多个线圈SD
     }
 
-    public interface IRequestCmd
+    public abstract class RequestCmd
     {
-        byte[] GetBytes();
+        public UInt16 sessionNum;//会话编号
+        public UInt16 tag;//modbusTCP表示符 0
+        public UInt16 length;//后续报文的字节长度
+        public byte slaveNum;//从站号
+        public CmdCode cmdCode;//命令码
+
+        abstract public byte[] GetBytes();
     }
 
-    class RequestCMDRead : IRequestCmd
+    class RequestCMDRead : RequestCmd
     {
-        private UInt16 sessionNum;//会话编号
-        private UInt16 tag;//modbusTCP表示符 0
-        private UInt16 length;//后续报文的字节长度
-        private byte slaveNum;//从站号
-        private CmdCode cmdCode;//命令码
-        private UInt16 startAddress;//起始地址
-        private UInt16 reqNum;//读取的数量
+        public UInt16 startAddress;//起始地址
+        public UInt16 reqNum;//读取的数量
+
+
 
         public RequestCMDRead(byte slaveNum, CmdCode cmdCode, ushort startAddress, ushort reqNum)
         {
+            this.sessionNum = InovanceModbusTCPTool.GetSessionNum();
             this.tag = 0;
             this.length = 6;
             this.slaveNum = slaveNum;
@@ -243,9 +351,8 @@ namespace InovanceModbusTCP
             this.reqNum = reqNum;
         }
 
-        public byte[] GetBytes()
+        override public byte[] GetBytes()
         {
-            this.sessionNum = InovanceModbusTCPTool.GetSessionNum();
             byte [] bytes = new byte[this.length+6];
             bytes[0] = (byte)(sessionNum >> 8);
             bytes[1] = (byte)(sessionNum & 0x00ff);
@@ -263,15 +370,15 @@ namespace InovanceModbusTCP
         }
     }
 
-    class RequestCMDWriteSingle : IRequestCmd
+    class RequestCMDWriteSingle : RequestCmd
     {
-        private UInt16 sessionNum;//会话编号
-        private UInt16 tag;//modbusTCP表示符 0
-        private UInt16 length;//后续报文的字节长度
-        private byte slaveNum;//从站号
-        private CmdCode cmdCode;//命令码
-        private UInt16 startAddress;//操作的目标地址
-        private UInt16 value;//写入的值
+        public UInt16 sessionNum;//会话编号
+        public UInt16 tag;//modbusTCP表示符 0
+        public UInt16 length;//后续报文的字节长度
+        public byte slaveNum;//从站号
+        public CmdCode cmdCode;//命令码
+        public UInt16 startAddress;//操作的目标地址
+        public UInt16 value;//写入的值
 
         public RequestCMDWriteSingle(byte slaveNum, CmdCode cmdCode, ushort startAddress, ushort value)
         {
@@ -284,7 +391,7 @@ namespace InovanceModbusTCP
             this.value = value;
         }
 
-        public byte[] GetBytes()
+        override public byte[] GetBytes()
         {
             byte[] bytes = new byte[this.length + 6];
             bytes[0] = (byte)(sessionNum >> 8);
@@ -303,17 +410,17 @@ namespace InovanceModbusTCP
         }
     }
 
-    class RequestCMDWriteMore : IRequestCmd
+    class RequestCMDWriteMore : RequestCmd
     {
-        private UInt16 sessionNum;//会话编号
-        private UInt16 tag;//modbusTCP表示符 0
-        private UInt16 length;//后续报文的字节长度
-        private byte slaveNum;//从站号
-        private CmdCode cmdCode;//命令码
-        private UInt16 startAddress;//起始地址
-        private UInt16 reqNum;//写入的数量
-        private byte byteNum;//字节数量
-        private byte[] bytes;//要写入的内容
+        public UInt16 sessionNum;//会话编号
+        public UInt16 tag;//modbusTCP表示符 0
+        public UInt16 length;//后续报文的字节长度
+        public byte slaveNum;//从站号
+        public CmdCode cmdCode;//命令码
+        public UInt16 startAddress;//起始地址
+        public UInt16 reqNum;//写入的数量
+        public byte byteNum;//字节数量
+        public byte[] bytes;//要写入的内容
 
         public RequestCMDWriteMore(byte slaveNum, CmdCode cmdCode, ushort startAddress, ushort reqNum, byte[] bytes)
         {
@@ -328,7 +435,7 @@ namespace InovanceModbusTCP
             this.bytes = bytes;
         }
 
-        public byte[] GetBytes()
+        override public byte[] GetBytes()
         {
             byte[] bytes = new byte[this.length + 6];
             bytes[0] = (byte)(sessionNum >> 8);
@@ -351,6 +458,47 @@ namespace InovanceModbusTCP
             }
 
             return bytes;
+        }
+    }
+
+    class CheckRes
+    {
+        private UInt16 reuqestSessionNum;
+        private bool findSuccess = false;
+
+        private Respones respones;
+
+        public CheckRes(ushort reuqestSessionNum)
+        {
+            this.reuqestSessionNum = reuqestSessionNum;
+        }
+
+        public ushort ReuqestSessionNum { get => reuqestSessionNum; set => reuqestSessionNum = value; }
+        public bool FindSuccess { get => findSuccess; set => findSuccess = value; }
+        internal Respones Respones { get => respones; set => respones = value; }
+    }
+
+    class Respones
+    {
+        public UInt16 recSessionNum;
+        public UInt16 tag;
+        public UInt16 length;
+        public byte slaveNum;
+        public CmdCode cmdCode;
+        public byte[] data;
+
+        public Respones(byte[] bytes)
+        {
+            this.recSessionNum = (UInt16)(bytes[0] << 8);
+            this.recSessionNum = (UInt16)(this.recSessionNum | bytes[1]);
+            this.tag = (UInt16)(bytes[2] << 8);
+            this.tag = (UInt16)(this.tag | bytes[3]);
+            this.length = (UInt16)(bytes[4] << 8);
+            this.length = (UInt16)(this.length | bytes[5]);
+            this.slaveNum = bytes[6];
+            this.cmdCode = (CmdCode)bytes[7];
+            data = new byte[bytes.Length];
+            Array.ConstrainedCopy(bytes, 0, data, 0, bytes.Length);
         }
     }
 }

@@ -14,20 +14,34 @@ namespace InovanceModbusTCP
     public partial class Form1 : Form
     {
         Test t = new Test();
+        InovanceModbusTCPTool plc = new InovanceModbusTCPTool("127.0.0.1", 502);
         public Form1()
         {
             InitializeComponent();
             CheckForIllegalCrossThreadCalls = false;
-            Thread thread = new Thread(go);
+            /*Thread thread = new Thread(go);
             thread.IsBackground = true;
-            thread.Start();
+            thread.Start();*/
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            Thread thread = new Thread(go2);
+            plc.Connect();
+            /*Thread thread = new Thread(go2);
             thread.IsBackground = true;
-            thread.Start();
+            thread.Start();*/
+        }
+        private void button2_Click(object sender, EventArgs e)
+        {
+            ReadResult<bool> readResult = plc.ReadBoolean(0, 100);
+            if (!readResult.success)
+            {
+                show(listBox1, "失败");
+            }
+            else
+            {
+                show(listBox1, readResult.data.ToString());
+            }
         }
 
         public void go()

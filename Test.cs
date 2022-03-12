@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace InovanceModbusTCP
 {
-    internal class Test
+    public class Test
     {
         public string covn()
         {
