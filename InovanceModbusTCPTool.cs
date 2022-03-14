@@ -462,6 +462,65 @@ namespace InovanceModbusTCP
 
         #endregion
 
+        #region 写入数据
+
+        #region 单个写入
+
+        public bool Write(byte slaveNum, string startAddress, bool value)
+        {
+            CmdCode cmdCode;
+            ushort address = 0;
+            if (startAddress.Contains("Q")|| startAddress.Contains("q"))
+            {
+                cmdCode = CmdCode.WriteSingleBooleanQ;
+                address = ushort.Parse(startAddress.Substring(1));
+            }
+            else if (startAddress.Contains("SM") || startAddress.Contains("sm"))
+            {
+                cmdCode = CmdCode.WriteSingleBooleanSM;
+                address = ushort.Parse(startAddress.Substring(2));
+            }
+            else
+            {
+                return false;
+            }
+            UInt16 i = (UInt16)(value ? 0xff00 : 0);
+            RequestCmd cmd = new RequestCMDWriteSingle(slaveNum, cmdCode, address, i);
+            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
+            bool v = SendTo(cmd);//发送请求
+            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
+            checkThread.IsBackground = true;
+            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
+            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
+            if (!checkRes.FindSuccess)
+            {
+                return false;
+            }
+            return ByteArrayEquals(cmd.GetBytes(), checkRes.Respones.data);
+        }
+
+        #endregion
+
+        #endregion
+
+        public bool ByteArrayEquals(byte[] b1, byte[] b2)
+        {
+            if (b1.Length == b2.Length)
+            {
+                for (int i = 0; i < b1.Length; i++)
+                {
+                    if (b1[i] != b2[i])
+                    {
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                return false;
+            }
+            return true;
+        }
 
         public bool ByteToBool(byte value)
         {
@@ -600,11 +659,6 @@ namespace InovanceModbusTCP
 
     class RequestCMDWriteSingle : RequestCmd
     {
-        public UInt16 sessionNum;//会话编号
-        public UInt16 tag;//modbusTCP表示符 0
-        public UInt16 length;//后续报文的字节长度
-        public byte slaveNum;//从站号
-        public CmdCode cmdCode;//命令码
         public UInt16 startAddress;//操作的目标地址
         public UInt16 value;//写入的值
 
@@ -640,11 +694,6 @@ namespace InovanceModbusTCP
 
     class RequestCMDWriteMore : RequestCmd
     {
-        public UInt16 sessionNum;//会话编号
-        public UInt16 tag;//modbusTCP表示符 0
-        public UInt16 length;//后续报文的字节长度
-        public byte slaveNum;//从站号
-        public CmdCode cmdCode;//命令码
         public UInt16 startAddress;//起始地址
         public UInt16 reqNum;//写入的数量
         public byte byteNum;//字节数量

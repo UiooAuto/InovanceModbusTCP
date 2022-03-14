@@ -34,8 +34,14 @@ namespace InovanceModbusTCP
             }
             else
             {
-                thread2.Abort();
-                thread3.Abort();
+                if (thread2.IsAlive)
+                {
+                    thread2.Abort();
+                }
+                if (thread3.IsAlive)
+                {
+                    thread3.Abort();
+                }
                 plc.CloseConnect();
                 button1.Text = "连接";
             }
@@ -43,6 +49,16 @@ namespace InovanceModbusTCP
         }
         private void button2_Click(object sender, EventArgs e)
         {
+            show(listBox2, "按下");
+            bool v = plc.Write(1, "q101", false);
+            if (v)
+            {
+                show(listBox2, "写入成功");
+            }
+            else
+            {
+                show(listBox2, "写入失败");
+            }
             /*ReadResult<UInt16[]> readResult = plc.ReadWordM(0, 100, 4);
             if (!readResult.success)
             {
@@ -53,18 +69,27 @@ namespace InovanceModbusTCP
                 //MessageBox.Show(Newtonsoft.Json.JsonConvert.SerializeObject(readResult.data));
                 show(listBox1, Newtonsoft.Json.JsonConvert.SerializeObject(readResult.data));
             }*/
-            thread2 = new Thread(go2);
+            /*thread2 = new Thread(go2);
             thread2.IsBackground = true;
             thread2.Start();
             thread3 = new Thread(go3);
             thread3.IsBackground = true;
-            thread3.Start();
+            thread3.Start();*/
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
             show(listBox2, "按下");
-            ReadResult<bool> readResult = plc.ReadBooleanQ(1, 101);
+            bool v = plc.Write(1, "q101", true);
+            if (v)
+            {
+                show(listBox2, "写入成功");
+            }
+            else
+            {
+                show(listBox2, "写入失败");
+            }
+            /*ReadResult<bool> readResult = plc.ReadBooleanQ(1, 101);
             if (!readResult.success)
             {
                 show(listBox2, "失败");
@@ -72,7 +97,7 @@ namespace InovanceModbusTCP
             else
             {
                 show(listBox2, readResult.data.ToString());
-            }
+            }*/
         }
 
         public void go()
