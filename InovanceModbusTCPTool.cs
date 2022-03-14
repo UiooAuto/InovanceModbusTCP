@@ -499,6 +499,38 @@ namespace InovanceModbusTCP
             return ByteArrayEquals(cmd.GetBytes(), checkRes.Respones.data);
         }
 
+        public bool Write(byte slaveNum, string startAddress, UInt16 value)
+        {
+            CmdCode cmdCode;
+            ushort address = 0;
+            if (startAddress.Contains("M")|| startAddress.Contains("m"))
+            {
+                cmdCode = CmdCode.WriteSingleWordM;
+                address = ushort.Parse(startAddress.Substring(1));
+            }
+            else if (startAddress.Contains("SD") || startAddress.Contains("sd"))
+            {
+                cmdCode = CmdCode.WriteSingleWordSD;
+                address = ushort.Parse(startAddress.Substring(2));
+            }
+            else
+            {
+                return false;
+            }
+            RequestCmd cmd = new RequestCMDWriteSingle(slaveNum, cmdCode, address, value);
+            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
+            bool v = SendTo(cmd);//发送请求
+            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
+            checkThread.IsBackground = true;
+            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
+            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
+            if (!checkRes.FindSuccess)
+            {
+                return false;
+            }
+            return ByteArrayEquals(cmd.GetBytes(), checkRes.Respones.data);
+        }
+
         #endregion
 
         #endregion
