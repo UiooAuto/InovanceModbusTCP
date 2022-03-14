@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -13,124 +14,171 @@ namespace InovanceModbusTCP
 {
     public partial class Form1 : Form
     {
-        InovanceModbusTCPTool plc = new InovanceModbusTCPTool("127.0.0.1", 502);
+        InovanceModbusTCPTool plc;
         Thread thread2;
         Thread thread3;
         public Form1()
         {
             InitializeComponent();
             CheckForIllegalCrossThreadCalls = false;
-            /*Thread thread = new Thread(go);
-            thread.IsBackground = true;
-            thread.Start();*/
         }
 
-        private void button1_Click(object sender, EventArgs e)
+
+        public void Show(string str)
         {
-            if (button1.Text == "连接")
+            listBox1.Items.Add(DateTime.Now.ToString("HH:mm:ss.fff") + "-" + str);
+            listBox1.SelectedIndex = listBox1.Items.Count - 1;
+        }
+
+        private void connect_Click(object sender, EventArgs e)
+        {
+            if (connect.Text == "连接")
             {
+                plc = new InovanceModbusTCPTool(tb_ip.Text, int.Parse(tb_port.Text));
                 plc.Connect();
-                button1.Text = "断开";
+                connect.Text = "断开";
+                Show("连接");
             }
             else
             {
-                if (thread2.IsAlive)
-                {
-                    thread2.Abort();
-                }
-                if (thread3.IsAlive)
-                {
-                    thread3.Abort();
-                }
                 plc.CloseConnect();
-                button1.Text = "连接";
+                connect.Text = "连接";
+                Show("断开");
             }
-            
         }
-        private void button2_Click(object sender, EventArgs e)
+
+        private void btn_ReadBool_Click(object sender, EventArgs e)
         {
-            show(listBox2, "按下");
-            bool v = plc.Write(1, "q101", new bool[] {true, false ,true, true, false, false, false, false, true, true, false, true});
+            int num;
+            if (int.TryParse(tb_ReadBoolLength.Text, out num))
+            {
+                ReadResult<bool[]> readResult = plc.ReadBoolean(1, tb_ReadBoolAddress.Text, (UInt16)num);
+                if (readResult.success)
+                {
+                    Show(JsonConvert.SerializeObject(readResult.data));
+                }
+                else
+                {
+                    Show("读取失败");
+                }
+            }
+            else
+            {
+                ReadResult<bool> readResult = plc.ReadBoolean(1, tb_ReadBoolAddress.Text);
+                if (readResult.success)
+                {
+                    Show(readResult.data.ToString());
+                }
+                else
+                {
+                    Show("读取失败");
+                }
+            }            
+        }
+
+        private void btn_ReadWord_Click(object sender, EventArgs e)
+        {
+            int num;
+            if (int.TryParse(tb_ReadWordLength.Text, out num))
+            {
+                ReadResult<UInt16[]> readResult = plc.ReadWord(1, tb_ReadWordAddress.Text, (UInt16)num);
+                if (readResult.success)
+                {
+                    Show(JsonConvert.SerializeObject(readResult.data));
+                }
+                else
+                {
+                    Show("读取失败");
+                }
+            }
+            else
+            {
+                ReadResult<UInt16> readResult = plc.ReadWord(1, tb_ReadWordAddress.Text);
+                if (readResult.success)
+                {
+                    Show(readResult.data.ToString());
+                }
+                else
+                {
+                    Show("读取失败");
+                }
+            }
+        }
+
+        private void btn_WriteBool_Click(object sender, EventArgs e)
+        {
+            bool v;
+            if (tb_WriteBoolValue.Text.Contains(','))
+            {
+                string[] strings = tb_WriteBoolValue.Text.Split(',');
+                bool[] bools = new bool[strings.Length];
+                for (int i = 0; i < strings.Length; i++)
+                {
+                    bools[i] = StringToBool(strings[i]);
+                }
+                v = plc.Write(1, tb_WriteBoolAddress.Text, bools);
+            }
+            else
+            {
+                v = plc.Write(1, tb_WriteBoolAddress.Text, StringToBool(tb_WriteBoolValue.Text));
+            }
             if (v)
             {
-                show(listBox2, "写入成功");
+                Show("写入成功");
             }
             else
             {
-                show(listBox2, "写入失败");
+                Show("写入失败");
             }
-            /*ReadResult<UInt16[]> readResult = plc.ReadWordM(0, 100, 4);
-            if (!readResult.success)
-            {
-                show(listBox1, "失败");
-            }
-            else
-            {
-                //MessageBox.Show(Newtonsoft.Json.JsonConvert.SerializeObject(readResult.data));
-                show(listBox1, Newtonsoft.Json.JsonConvert.SerializeObject(readResult.data));
-            }*/
-            /*thread2 = new Thread(go2);
-            thread2.IsBackground = true;
-            thread2.Start();
-            thread3 = new Thread(go3);
-            thread3.IsBackground = true;
-            thread3.Start();*/
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void btn_WriteWord_Click(object sender, EventArgs e)
         {
-            show(listBox2, "按下");
-            bool v = plc.Write(1, "m101", new UInt16[] { 0, 1, 258, 55536 });
+            bool v;
+            if (tb_WriteWordValue.Text.Contains(','))
+            {
+                string[] strings = tb_WriteWordValue.Text.Split(',');
+                UInt16[] uint16s = new UInt16[strings.Length];
+                for (int i = 0; i < strings.Length; i++)
+                {
+                    uint16s[i] = UInt16.Parse(strings[i]);
+                }
+                v = plc.Write(1, tb_WriteWordAddress.Text, uint16s);
+            }
+            else
+            {
+                v = plc.Write(1, tb_WriteWordAddress.Text, UInt16.Parse(tb_WriteWordValue.Text));
+            }
             if (v)
             {
-                show(listBox2, "写入成功");
+                Show("写入成功");
             }
             else
             {
-                show(listBox2, "写入失败");
+                Show("写入失败");
             }
-            /*ReadResult<bool> readResult = plc.ReadBooleanQ(1, 101);
-            if (!readResult.success)
+        }
+
+        public bool StringToBool(string value)
+        {
+            if (value == "1")
             {
-                show(listBox2, "失败");
+                return true;
+            }else if (value == "true")
+            {
+                return true;
+            }
+            else if(value == "0")
+            {
+                return false;
+            }else if(value == "false")
+            {
+                return false;
             }
             else
             {
-                show(listBox2, readResult.data.ToString());
-            }*/
-        }
-
-        public void go()
-        {
-            while (true)
-            {
-                show(listBox1, plc.ReadBooleanQ(1, 100).data.ToString()); 
+                return false;
             }
         }
-        public void go3()
-        {
-            while (true)
-            {
-                //show(listBox2, "按下");
-                show(listBox3, Newtonsoft.Json.JsonConvert.SerializeObject(plc.ReadWordM(0, 102, 4).data));
-                Thread.Sleep(1000);
-            }
-        }
-        public void go2()
-        {
-            while (true)
-            {
-                //show(listBox2, "按下");
-                show(listBox1, Newtonsoft.Json.JsonConvert.SerializeObject(plc.ReadWordM(1, 100, 4).data));
-                Thread.Sleep(1000);
-            }
-        }
-
-        public void show(ListBox listbox, string str)
-        {
-            listbox.Items.Add(DateTime.Now.ToString("HH:mm:ss.fff") + "-" + str);
-            listbox.SelectedIndex = listbox.Items.Count - 1;
-        }
-
     }
 }
