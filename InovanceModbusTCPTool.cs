@@ -149,7 +149,9 @@ namespace InovanceModbusTCP
             int v;
             try
             {
-                v = socket.Send(cmd.GetBytes());
+                byte[] vs = cmd.GetBytes();
+                v = socket.Send(vs);
+                //v = socket.Send(cmd.GetBytes());
             }
             catch
             {
@@ -533,6 +535,86 @@ namespace InovanceModbusTCP
 
         #endregion
 
+        #region 多个写入
+
+        public bool Write(byte slaveNum, string startAddress, bool[] value)
+        {
+            CmdCode cmdCode;
+            ushort address = 0;
+            if (startAddress.Contains("Q") || startAddress.Contains("q"))
+            {
+                cmdCode = CmdCode.WriteMoreBooleanQ;
+                address = ushort.Parse(startAddress.Substring(1));
+            }
+            else if (startAddress.Contains("SM") || startAddress.Contains("sm"))
+            {
+                cmdCode = CmdCode.WriteMoreBooleanSM;
+                address = ushort.Parse(startAddress.Substring(2));
+            }
+            else
+            {
+                return false;
+            }
+            byte[] vs = BoolsToBytes(value);
+            RequestCmd cmd = new RequestCMDWriteMore(slaveNum, cmdCode, address, (UInt16)value.Length, vs);
+            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
+            bool v = SendTo(cmd);//发送请求
+            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
+            checkThread.IsBackground = true;
+            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
+            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
+            if (!checkRes.FindSuccess)
+            {
+                return false;
+            }
+
+            byte[] vs1 = MakeTargetRespones(cmd.GetBytes());
+            vs1[4] = 0;
+            vs1[5] = 6;
+
+            return ByteArrayEquals(vs1, checkRes.Respones.data);
+        }
+
+        public bool Write(byte slaveNum, string startAddress, UInt16[] value)
+        {
+            CmdCode cmdCode;
+            ushort address = 0;
+            if (startAddress.Contains("M") || startAddress.Contains("m"))
+            {
+                cmdCode = CmdCode.WriteMoreWordM;
+                address = ushort.Parse(startAddress.Substring(1));
+            }
+            else if (startAddress.Contains("SD") || startAddress.Contains("sd"))
+            {
+                cmdCode = CmdCode.WriteMoreWordSD;
+                address = ushort.Parse(startAddress.Substring(2));
+            }
+            else
+            {
+                return false;
+            }
+            byte[] vs = Uint16ToBytes(value);
+            RequestCmd cmd = new RequestCMDWriteMore(slaveNum, cmdCode, address, (UInt16)value.Length, vs);
+            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
+            bool v = SendTo(cmd);//发送请求
+            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
+            checkThread.IsBackground = true;
+            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
+            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
+            if (!checkRes.FindSuccess)
+            {
+                return false;
+            }
+
+            byte[] vs1 = MakeTargetRespones(cmd.GetBytes());
+            vs1[4] = 0;
+            vs1[5] = 6;
+
+            return ByteArrayEquals(vs1, checkRes.Respones.data);
+        }
+
+        #endregion
+
         #endregion
 
         public bool ByteArrayEquals(byte[] b1, byte[] b2)
@@ -594,6 +676,25 @@ namespace InovanceModbusTCP
             return bools;
         }
 
+        public byte[] BoolsToBytes(bool[] values)
+        {
+            byte[] result = new byte[(values.Length/8) + 1];
+            for (int i = 0; i < result.Length; i++)
+            {
+                result[i] = 0;
+                byte tool = 0x01;
+                for (int j = 0; (i * 8) + j < values.Length; j++)
+                {
+                    if (values[(i * 8) + j])
+                    {
+                        result[i] = (byte)(result[i] | tool);
+                    }
+                    tool = (byte)(tool << 1);
+                }
+            }
+            return result;
+        }
+
         public UInt16[] BytesToUInt16(byte[] bytes)
         {
             UInt16[] ints = new UInt16[bytes.Length/2];
@@ -604,6 +705,27 @@ namespace InovanceModbusTCP
                 ints[i] = (UInt16)(ints[i] | bytes[(i * 2) + 1]);
             }
             return ints;
+        }
+
+        public byte[] Uint16ToBytes(UInt16[] value)
+        {
+            byte[] bytes = new byte[value.Length * 2];
+            for (int i = 0; i < value.Length; i++)
+            {
+                bytes[i * 2] = (byte)(value[i] >> 8);
+                bytes[(i * 2) + 1] = (byte)(value[i] & 0x00ff);
+            }
+            return bytes;
+        }
+
+        public byte[] MakeTargetRespones(byte[] value)
+        {
+            byte[] result = new byte[12];
+            for (int i = 0; i < result.Length; i++)
+            {
+                result[i] = value[i];
+            }
+            return result;
         }
     }
 
@@ -729,7 +851,7 @@ namespace InovanceModbusTCP
         public UInt16 startAddress;//起始地址
         public UInt16 reqNum;//写入的数量
         public byte byteNum;//字节数量
-        public byte[] bytes;//要写入的内容
+        public byte[] data;//要写入的内容
 
         public RequestCMDWriteMore(byte slaveNum, CmdCode cmdCode, ushort startAddress, ushort reqNum, byte[] bytes)
         {
@@ -741,7 +863,7 @@ namespace InovanceModbusTCP
             this.startAddress = startAddress;
             this.reqNum = reqNum;
             this.byteNum = (byte)bytes.Length;
-            this.bytes = bytes;
+            this.data = bytes;
         }
 
         override public byte[] GetBytes()
@@ -761,9 +883,9 @@ namespace InovanceModbusTCP
             bytes[11] = (byte)(reqNum & 0x00ff);
             bytes[12] = byteNum;
 
-            for (int i = 0; i < bytes.Length; i++)
+            for (int i = 0; i < data.Length; i++)
             {
-                bytes[i + 13] = bytes[i];
+                bytes[i + 13] = data[i];
             }
 
             return bytes;

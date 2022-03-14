@@ -50,7 +50,7 @@ namespace InovanceModbusTCP
         private void button2_Click(object sender, EventArgs e)
         {
             show(listBox2, "按下");
-            bool v = plc.Write(1, "m101", 100);
+            bool v = plc.Write(1, "q101", new bool[] {true, false ,true, true, false, false, false, false, true, true, false, true});
             if (v)
             {
                 show(listBox2, "写入成功");
@@ -80,7 +80,7 @@ namespace InovanceModbusTCP
         private void button3_Click(object sender, EventArgs e)
         {
             show(listBox2, "按下");
-            bool v = plc.Write(1, "M101", 200);
+            bool v = plc.Write(1, "m101", new UInt16[] { 0, 1, 258, 55536 });
             if (v)
             {
                 show(listBox2, "写入成功");
