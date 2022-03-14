@@ -110,6 +110,7 @@ namespace InovanceModbusTCP
         {
             if (socket != null)
             {
+                readThread.Abort();
                 try
                 {
                     socket.Shutdown(SocketShutdown.Both);
@@ -390,6 +391,9 @@ namespace InovanceModbusTCP
             byte[] resultByte = new byte[checkRes.Respones.data[8]];//如果查找成功，则新建结果数组
             Array.ConstrainedCopy(checkRes.Respones.data, 9, resultByte, 0, checkRes.Respones.data[8]);//从结果报文中获取结果内容
             readResult.data = BytesToUInt16(resultByte);
+
+            //Thread.Sleep(100);
+
             return readResult;
         }
 
