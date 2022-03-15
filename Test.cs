@@ -9,6 +9,7 @@ namespace InovanceModbusTCP
 {
     public class Test
     {
+        public static int num = 100;
         public string covn()
         {
             Thread thread = new Thread(rec);
