@@ -49,7 +49,7 @@ namespace InovanceModbusTCP
 
         private void btn_ReadBool_Click(object sender, EventArgs e)
         {
-            int num;
+            /*int num;
             if (int.TryParse(tb_ReadBoolLength.Text, out num))
             {
                 ReadResult<bool[]> readResult = plc.ReadBoolean(1, tb_ReadBoolAddress.Text, (UInt16)num);
@@ -73,7 +73,7 @@ namespace InovanceModbusTCP
                 {
                     Show("读取失败");
                 }
-            }            
+            }  */          
         }
 
         private void btn_ReadWord_Click(object sender, EventArgs e)
@@ -81,7 +81,7 @@ namespace InovanceModbusTCP
             int num;
             if (int.TryParse(tb_ReadWordLength.Text, out num))
             {
-                ReadResult<UInt16[]> readResult = plc.ReadWord(1, tb_ReadWordAddress.Text, (UInt16)num);
+                ReadResult<UInt16[]> readResult = plc.ReadUint16(1, tb_ReadWordAddress.Text, (UInt16)num);
                 if (readResult.success)
                 {
                     Show(JsonConvert.SerializeObject(readResult.data));
@@ -93,7 +93,7 @@ namespace InovanceModbusTCP
             }
             else
             {
-                ReadResult<UInt16> readResult = plc.ReadWord(1, tb_ReadWordAddress.Text);
+                ReadResult<UInt16> readResult = plc.ReadUint16(1, tb_ReadWordAddress.Text);
                 if (readResult.success)
                 {
                     Show(readResult.data.ToString());
@@ -107,7 +107,7 @@ namespace InovanceModbusTCP
 
         private void btn_WriteBool_Click(object sender, EventArgs e)
         {
-            bool v;
+            /*bool v;
             if (tb_WriteBoolValue.Text.Contains(','))
             {
                 string[] strings = tb_WriteBoolValue.Text.Split(',');
@@ -129,7 +129,7 @@ namespace InovanceModbusTCP
             else
             {
                 Show("写入失败");
-            }
+            }*/
         }
 
         private void btn_WriteWord_Click(object sender, EventArgs e)

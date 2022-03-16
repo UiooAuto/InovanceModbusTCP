@@ -211,7 +211,7 @@ namespace InovanceModbusTCP
         }
         #region 读取数据
 
-        #region 读取bool量
+        /*#region 读取bool量
 
         /// <summary>
         /// 读取单个bool量
@@ -304,125 +304,7 @@ namespace InovanceModbusTCP
             return readResult;
         }
 
-        /*/// <summary>
-        /// 读取单个bool量
-        /// </summary>
-        /// <param name="slaveNum">从站号</param>
-        /// <param name="startAddress">读取的地址</param>
-        /// <returns></returns>
-        public ReadResult<bool> ReadBooleanQ(byte slaveNum, ushort startAddress)
-        {
-            ReadResult<bool> readResult = new ReadResult<bool>();//预备结果
-
-            RequestCmd cmd = new RequestCMDRead(slaveNum, CmdCode.ReadBooleanQ, startAddress, 1);//创建请求报文
-            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
-            bool v = SendTo(cmd);//发送请求
-            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
-            checkThread.IsBackground = true;
-            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
-            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
-
-            readResult.success = checkRes.FindSuccess;
-            if (!checkRes.FindSuccess)
-            {
-                checkThread.Abort();
-                return readResult;
-            }
-
-            readResult.data = ByteToBool(checkRes.Respones.data[9]);
-            return readResult;
-        }
-        
-        /// <summary>
-        /// 读取连续的多个bool量
-        /// </summary>
-        /// <param name="slaveNum">从站号</param>
-        /// <param name="startAddress">起始地址</param>
-        /// <param name="reqNum">读取长度</param>
-        /// <returns></returns>
-        public ReadResult<bool[]> ReadBooleanQ(byte slaveNum, ushort startAddress, ushort reqNum)
-        {
-            ReadResult<bool[]> readResult = new ReadResult<bool[]>();//预备结果
-
-            RequestCmd cmd = new RequestCMDRead(slaveNum, CmdCode.ReadBooleanQ, startAddress, reqNum);//创建请求报文
-            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
-            bool v = SendTo(cmd);//发送请求
-            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
-            checkThread.IsBackground = true;
-            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
-            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
-
-            readResult.success = checkRes.FindSuccess;//结果查找成功
-            if (!checkRes.FindSuccess)//如果查找不成功则直接返回失败结果
-            {
-                return readResult;
-            }
-            byte[] resultByte = new byte[checkRes.Respones.data[8]];//如果查找成功，则新建结果数组
-            Array.ConstrainedCopy(checkRes.Respones.data, 9, resultByte, 0, checkRes.Respones.data[8]);//从结果报文中获取结果内容
-            readResult.data = ByteToBool(resultByte, reqNum);//将byte数组的结果转换为bool数组
-            return readResult;
-        }
-        
-        /// <summary>
-        /// 读取单个bool量
-        /// </summary>
-        /// <param name="slaveNum">从站号</param>
-        /// <param name="startAddress">读取的地址</param>
-        /// <returns></returns>
-        public ReadResult<bool> ReadBooleanSM(byte slaveNum, ushort startAddress)
-        {
-            ReadResult<bool> readResult = new ReadResult<bool>();//预备结果
-
-            RequestCmd cmd = new RequestCMDRead(slaveNum, CmdCode.ReadBooleanSM, startAddress, 1);//创建请求报文
-            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
-            bool v = SendTo(cmd);//发送请求
-            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
-            checkThread.IsBackground = true;
-            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
-            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
-
-            readResult.success = checkRes.FindSuccess;
-            if (!checkRes.FindSuccess)
-            {
-                checkThread.Abort();
-                return readResult;
-            }
-
-            readResult.data = ByteToBool(checkRes.Respones.data[9]);
-            return readResult;
-        }
-        
-        /// <summary>
-        /// 读取连续的多个bool量
-        /// </summary>
-        /// <param name="slaveNum">从站号</param>
-        /// <param name="startAddress">起始地址</param>
-        /// <param name="reqNum">读取长度</param>
-        /// <returns></returns>
-        public ReadResult<bool[]> ReadBooleanSM(byte slaveNum, ushort startAddress, ushort reqNum)
-        {
-            ReadResult<bool[]> readResult = new ReadResult<bool[]>();//预备结果
-
-            RequestCmd cmd = new RequestCMDRead(slaveNum, CmdCode.ReadBooleanSM, startAddress, reqNum);//创建请求报文
-            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
-            bool v = SendTo(cmd);//发送请求
-            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
-            checkThread.IsBackground = true;
-            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
-            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
-
-            readResult.success = checkRes.FindSuccess;//结果查找成功
-            if (!checkRes.FindSuccess)//如果查找不成功则直接返回失败结果
-            {
-                return readResult;
-            }
-            byte[] resultByte = new byte[checkRes.Respones.data[8]];//如果查找成功，则新建结果数组
-            Array.ConstrainedCopy(checkRes.Respones.data, 9, resultByte, 0, checkRes.Respones.data[8]);//从结果报文中获取结果内容
-            readResult.data = ByteToBool(resultByte, reqNum);//将byte数组的结果转换为bool数组
-            return readResult;
-        }*/
-
-        #endregion
+        #endregion*/
 
         #region 读取UInt16量
 
@@ -432,7 +314,7 @@ namespace InovanceModbusTCP
         /// <param name="slaveNum">从站号</param>
         /// <param name="startAddress">读取的地址</param>
         /// <returns>读取到的字</returns>
-        public ReadResult<UInt16> ReadWord(byte slaveNum, string startAddress)
+        public ReadResult<UInt16> ReadUint16(byte slaveNum, string startAddress)
         {
             ReadResult<UInt16> readResult = new ReadResult<UInt16>();//预备结果
             CmdCode cmdCode;
@@ -480,7 +362,7 @@ namespace InovanceModbusTCP
         /// <param name="startAddress">起始地址</param>
         /// <param name="reqNum">读取长度</param>
         /// <returns>读取到的字数组</returns>
-        public ReadResult<UInt16[]> ReadWord(byte slaveNum, string startAddress, ushort reqNum)
+        public ReadResult<UInt16[]> ReadUint16(byte slaveNum, string startAddress, ushort reqNum)
         {
             ReadResult<UInt16[]> readResult = new ReadResult<UInt16[]>();//预备结果
             CmdCode cmdCode;
@@ -521,33 +403,56 @@ namespace InovanceModbusTCP
             return readResult;
         }
 
-        /*/// <summary>
+        #endregion
+
+        #region 读取int16量
+
+        /// <summary>
         /// 读取一个字
         /// </summary>
         /// <param name="slaveNum">从站号</param>
         /// <param name="startAddress">读取的地址</param>
         /// <returns>读取到的字</returns>
-        public ReadResult<UInt16> ReadWordM(byte slaveNum, ushort startAddress)
+        public ReadResult<Int16> ReadInt16(byte slaveNum, string startAddress)
         {
-            ReadResult<UInt16> readResult = new ReadResult<UInt16>();//预备结果
+            ReadResult<Int16> readResult = new ReadResult<Int16>();//预备结果
+            CmdCode cmdCode;
+            ushort address = 0;
+            if (startAddress.Contains("M") || startAddress.Contains("m"))
+            {
+                cmdCode = CmdCode.ReadWordM;
+                address = ushort.Parse(startAddress.Substring(1));
+            }
+            else if (startAddress.Contains("SD") || startAddress.Contains("sd"))
+            {
+                cmdCode = CmdCode.ReadWordSD;
+                address = ushort.Parse(startAddress.Substring(2));
+            }
+            else
+            {
+                return readResult;
+            }
 
-            RequestCmd cmd = new RequestCMDRead(slaveNum, CmdCode.ReadWordM, startAddress, 1);//创建请求报文
+            RequestCmd cmd = new RequestCMDRead(slaveNum, cmdCode, address, 1);//创建请求报文
             CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
             bool v = SendTo(cmd);//发送请求
             Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
             checkThread.IsBackground = true;
             checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
             checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
+            checkThread.Abort();
 
             readResult.success = checkRes.FindSuccess;
             if (!checkRes.FindSuccess)
             {
-                checkThread.Abort();
                 return readResult;
             }
-            readResult.data = checkRes.Respones.data[9];
-            readResult.data = (UInt16)(readResult.data << 8);
-            readResult.data = (UInt16)(readResult.data | checkRes.Respones.data[10]);
+            UInt16 tempValue = 0;
+            tempValue = checkRes.Respones.data[9];
+            tempValue = (UInt16)(tempValue << 8);
+            tempValue = (UInt16)(tempValue | (UInt16)checkRes.Respones.data[10]);
+
+            readResult.data = (Int16)tempValue;
 
             return readResult;
         }
@@ -559,17 +464,34 @@ namespace InovanceModbusTCP
         /// <param name="startAddress">起始地址</param>
         /// <param name="reqNum">读取长度</param>
         /// <returns>读取到的字数组</returns>
-        public ReadResult<UInt16[]> ReadWordM(byte slaveNum, ushort startAddress, ushort reqNum)
+        public ReadResult<Int16[]> ReadInt16(byte slaveNum, string startAddress, ushort reqNum)
         {
-            ReadResult< UInt16[]> readResult = new ReadResult<UInt16[]>();//预备结果
+            ReadResult<Int16[]> readResult = new ReadResult<Int16[]>();//预备结果
+            CmdCode cmdCode;
+            ushort address = 0;
+            if (startAddress.Contains("M") || startAddress.Contains("m"))
+            {
+                cmdCode = CmdCode.ReadWordM;
+                address = ushort.Parse(startAddress.Substring(1));
+            }
+            else if (startAddress.Contains("SD") || startAddress.Contains("sd"))
+            {
+                cmdCode = CmdCode.ReadWordSD;
+                address = ushort.Parse(startAddress.Substring(2));
+            }
+            else
+            {
+                return readResult;
+            }
 
-            RequestCmd cmd = new RequestCMDRead(slaveNum, CmdCode.ReadWordM, startAddress, reqNum);//创建请求报文
+            RequestCmd cmd = new RequestCMDRead(slaveNum, cmdCode, address, reqNum);//创建请求报文
             CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
             bool v = SendTo(cmd);//发送请求
             Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
             checkThread.IsBackground = true;
             checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
             checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
+            checkThread.Abort();
 
             readResult.success = checkRes.FindSuccess;//结果查找成功
             if (!checkRes.FindSuccess)//如果查找不成功则直接返回失败结果
@@ -578,73 +500,114 @@ namespace InovanceModbusTCP
             }
             byte[] resultByte = new byte[checkRes.Respones.data[8]];//如果查找成功，则新建结果数组
             Array.ConstrainedCopy(checkRes.Respones.data, 9, resultByte, 0, checkRes.Respones.data[8]);//从结果报文中获取结果内容
-            readResult.data = BytesToUInt16(resultByte);
+            UInt16[] tempArr = BytesToUInt16(resultByte);
+            readResult.data = new Int16[tempArr.Length];
 
-            //Thread.Sleep(100);
+            for (int i = 0; i < tempArr.Length; i++)
+            {
+                readResult.data[i] = (Int16)tempArr[i];
+            }
 
             return readResult;
         }
 
+        #endregion
+
+        #region 读取Uint32量
+
         /// <summary>
-        /// 读取一个字
+        /// 读取一个双字
         /// </summary>
         /// <param name="slaveNum">从站号</param>
         /// <param name="startAddress">读取的地址</param>
         /// <returns>读取到的字</returns>
-        public ReadResult<UInt16> ReadWordSD(byte slaveNum, ushort startAddress)
+        public ReadResult<uint> ReadUint32(byte slaveNum, string startAddress)
         {
-            ReadResult<UInt16> readResult = new ReadResult<UInt16>();//预备结果
+            ReadResult<uint> readResult = new ReadResult<uint>();//预备结果
 
-            RequestCmd cmd = new RequestCMDRead(slaveNum, CmdCode.ReadWordSD, startAddress, 1);//创建请求报文
-            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
-            bool v = SendTo(cmd);//发送请求
-            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
-            checkThread.IsBackground = true;
-            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
-            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
+            ReadResult<ushort[]> readResultUint16 = ReadUint16(slaveNum, startAddress, 2);
 
-            readResult.success = checkRes.FindSuccess;
-            if (!checkRes.FindSuccess)
-            {
-                checkThread.Abort();
-                return readResult;
-            }
-            readResult.data = checkRes.Respones.data[9];
-            readResult.data = (UInt16)(readResult.data << 8);
-            readResult.data = (UInt16)(readResult.data | checkRes.Respones.data[10]);
+            readResult.data = readResultUint16.data[1];
+            readResult.data = readResult.data << 16;
+            readResult.data = readResult.data | readResultUint16.data[0];
 
             return readResult;
         }
 
         /// <summary>
-        /// 读取多个字
+        /// 读取多个双字
         /// </summary>
         /// <param name="slaveNum">从站号</param>
         /// <param name="startAddress">起始地址</param>
         /// <param name="reqNum">读取长度</param>
         /// <returns>读取到的字数组</returns>
-        public ReadResult<UInt16[]> ReadWordSD(byte slaveNum, ushort startAddress, ushort reqNum)
+        public ReadResult<uint[]> ReadUint32(byte slaveNum, string startAddress, ushort reqNum)
         {
-            ReadResult< UInt16[]> readResult = new ReadResult<UInt16[]>();//预备结果
+            ReadResult<uint[]> readResult = new ReadResult<uint[]>();//预备结果
+            readResult.data = new uint[reqNum];
 
-            RequestCmd cmd = new RequestCMDRead(slaveNum, CmdCode.ReadWordSD, startAddress, reqNum);//创建请求报文
-            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
-            bool v = SendTo(cmd);//发送请求
-            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
-            checkThread.IsBackground = true;
-            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
-            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
+            ReadResult<ushort[]> readResultUint16 = ReadUint16(slaveNum, startAddress, (UInt16)(2 * reqNum));
 
-            readResult.success = checkRes.FindSuccess;//结果查找成功
-            if (!checkRes.FindSuccess)//如果查找不成功则直接返回失败结果
+            for (int i = 0; i < reqNum; i++)
             {
-                return readResult;
+                readResult.data[i] = readResultUint16.data[(2 * i) + 1];
+                readResult.data[i] = readResult.data[i] << 16;
+                readResult.data[i] = readResult.data[i] | readResultUint16.data[2 * i];
             }
-            byte[] resultByte = new byte[checkRes.Respones.data[8]];//如果查找成功，则新建结果数组
-            Array.ConstrainedCopy(checkRes.Respones.data, 9, resultByte, 0, checkRes.Respones.data[8]);//从结果报文中获取结果内容
-            readResult.data = BytesToUInt16(resultByte);
+
             return readResult;
-        }*/
+        }
+
+        #endregion
+
+        #region 读取int32量
+
+        /// <summary>
+        /// 读取一个双字
+        /// </summary>
+        /// <param name="slaveNum">从站号</param>
+        /// <param name="startAddress">读取的地址</param>
+        /// <returns>读取到的字</returns>
+        public ReadResult<int> Readint32(byte slaveNum, string startAddress)
+        {
+            ReadResult<int> readResult = new ReadResult<int>();//预备结果
+            int result = 0;
+
+            ReadResult<ushort[]> readResultUint16 = ReadUint16(slaveNum, startAddress, 2);
+
+            result = readResultUint16.data[1];
+            result = result << 16;
+            result = result | readResultUint16.data[0];
+            readResult.data = result;
+
+            return readResult;
+        }
+
+        /// <summary>
+        /// 读取多个双字
+        /// </summary>
+        /// <param name="slaveNum">从站号</param>
+        /// <param name="startAddress">起始地址</param>
+        /// <param name="reqNum">读取长度</param>
+        /// <returns>读取到的字数组</returns>
+        public ReadResult<int[]> Readint32(byte slaveNum, string startAddress, ushort reqNum)
+        {
+            ReadResult<int[]> readResult = new ReadResult<int[]>();//预备结果
+            readResult.data = new int[reqNum];
+
+            ReadResult<ushort[]> readResultUint16 = ReadUint16(slaveNum, startAddress, (UInt16)(2 * reqNum));
+
+            for (int i = 0; i < reqNum; i++)
+            {
+                uint tempVar;
+                tempVar = readResultUint16.data[(2 * i) + 1];
+                tempVar = tempVar << 16;
+                tempVar = tempVar | readResultUint16.data[2 * i];
+                readResult.data[i] = (int)tempVar;
+            }
+
+            return readResult;
+        }
 
         #endregion
 
@@ -654,7 +617,7 @@ namespace InovanceModbusTCP
 
         #region 单个写入
 
-        public bool Write(byte slaveNum, string startAddress, bool value)
+        /*public bool Write(byte slaveNum, string startAddress, bool value)
         {
             CmdCode cmdCode;
             ushort address = 0;
@@ -685,7 +648,7 @@ namespace InovanceModbusTCP
                 return false;
             }
             return ByteArrayEquals(cmd.GetBytes(), checkRes.Respones.data);
-        }
+        }*/
 
         public bool Write(byte slaveNum, string startAddress, UInt16 value)
         {
@@ -719,11 +682,64 @@ namespace InovanceModbusTCP
             return ByteArrayEquals(cmd.GetBytes(), checkRes.Respones.data);
         }
 
+        public bool Write(byte slaveNum, string startAddress, Int16 value)
+        {
+            CmdCode cmdCode;
+            ushort address = 0;
+            if (startAddress.Contains("M")|| startAddress.Contains("m"))
+            {
+                cmdCode = CmdCode.WriteSingleWordM;
+                address = ushort.Parse(startAddress.Substring(1));
+            }
+            else if (startAddress.Contains("SD") || startAddress.Contains("sd"))
+            {
+                cmdCode = CmdCode.WriteSingleWordSD;
+                address = ushort.Parse(startAddress.Substring(2));
+            }
+            else
+            {
+                return false;
+            }
+            RequestCmd cmd = new RequestCMDWriteSingle(slaveNum, cmdCode, address, (UInt16)value);
+            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
+            bool v = SendTo(cmd);//发送请求
+            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
+            checkThread.IsBackground = true;
+            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
+            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
+            if (!checkRes.FindSuccess)
+            {
+                return false;
+            }
+            return ByteArrayEquals(cmd.GetBytes(), checkRes.Respones.data);
+        }
+
+        public bool Write(byte slaveNum, string startAddress, uint value)
+        {
+            UInt16[] tempArr = new UInt16[2];
+            tempArr[0] = (UInt16)(value & 0x0000ffff);
+            tempArr[1] = (UInt16)(value >> 16);
+            bool v = Write(slaveNum, startAddress, tempArr);
+
+            return v;
+        }
+
+        public bool Write(byte slaveNum, string startAddress, int value)
+        {
+            UInt16[] tempArr = new UInt16[2];
+            uint valueU = (uint)value;
+            tempArr[0] = (UInt16)(valueU & 0x0000ffff);
+            tempArr[1] = (UInt16)(valueU >> 16);
+            bool v = Write(slaveNum, startAddress, tempArr);
+
+            return v;
+        }
+
         #endregion
 
         #region 多个写入
 
-        public bool Write(byte slaveNum, string startAddress, bool[] value)
+        /*public bool Write(byte slaveNum, string startAddress, bool[] value)
         {
             CmdCode cmdCode;
             ushort address = 0;
@@ -759,7 +775,7 @@ namespace InovanceModbusTCP
             vs1[5] = 6;
 
             return ByteArrayEquals(vs1, checkRes.Respones.data);
-        }
+        }*/
 
         public bool Write(byte slaveNum, string startAddress, UInt16[] value)
         {
@@ -780,6 +796,137 @@ namespace InovanceModbusTCP
                 return false;
             }
             byte[] vs = Uint16ToBytes(value);
+            RequestCmd cmd = new RequestCMDWriteMore(slaveNum, cmdCode, address, (UInt16)value.Length, vs);
+            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
+            bool v = SendTo(cmd);//发送请求
+            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
+            checkThread.IsBackground = true;
+            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
+            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
+            if (!checkRes.FindSuccess)
+            {
+                return false;
+            }
+
+            byte[] vs1 = MakeTargetRespones(cmd.GetBytes());
+            vs1[4] = 0;
+            vs1[5] = 6;
+
+            return ByteArrayEquals(vs1, checkRes.Respones.data);
+        }
+
+        public bool Write(byte slaveNum, string startAddress, Int16[] value)
+        {
+            CmdCode cmdCode;
+            ushort address = 0;
+            if (startAddress.Contains("M") || startAddress.Contains("m"))
+            {
+                cmdCode = CmdCode.WriteMoreWordM;
+                address = ushort.Parse(startAddress.Substring(1));
+            }
+            else if (startAddress.Contains("SD") || startAddress.Contains("sd"))
+            {
+                cmdCode = CmdCode.WriteMoreWordSD;
+                address = ushort.Parse(startAddress.Substring(2));
+            }
+            else
+            {
+                return false;
+            }
+            byte[] vs = Int16ToBytes(value);
+            RequestCmd cmd = new RequestCMDWriteMore(slaveNum, cmdCode, address, (UInt16)value.Length, vs);
+            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
+            bool v = SendTo(cmd);//发送请求
+            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
+            checkThread.IsBackground = true;
+            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
+            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
+            if (!checkRes.FindSuccess)
+            {
+                return false;
+            }
+
+            byte[] vs1 = MakeTargetRespones(cmd.GetBytes());
+            vs1[4] = 0;
+            vs1[5] = 6;
+
+            return ByteArrayEquals(vs1, checkRes.Respones.data);
+        }
+
+        public bool Write(byte slaveNum, string startAddress, uint[] value)
+        {
+            UInt16[] tempArr = new ushort[value.Length * 2];
+
+            for (int i = 0; i < value.Length; i++)
+            {
+                tempArr[i * 2] = (UInt16)(value[i] & 0x0000ffff);
+                tempArr[(i * 2) + 1] = (UInt16)(value[i] >> 16);
+            }
+
+            CmdCode cmdCode;
+            ushort address = 0;
+            if (startAddress.Contains("M") || startAddress.Contains("m"))
+            {
+                cmdCode = CmdCode.WriteMoreWordM;
+                address = ushort.Parse(startAddress.Substring(1));
+            }
+            else if (startAddress.Contains("SD") || startAddress.Contains("sd"))
+            {
+                cmdCode = CmdCode.WriteMoreWordSD;
+                address = ushort.Parse(startAddress.Substring(2));
+            }
+            else
+            {
+                return false;
+            }
+            byte[] vs = Uint16ToBytes(tempArr);
+            RequestCmd cmd = new RequestCMDWriteMore(slaveNum, cmdCode, address, (UInt16)value.Length, vs);
+            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
+            bool v = SendTo(cmd);//发送请求
+            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
+            checkThread.IsBackground = true;
+            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
+            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
+            if (!checkRes.FindSuccess)
+            {
+                return false;
+            }
+
+            byte[] vs1 = MakeTargetRespones(cmd.GetBytes());
+            vs1[4] = 0;
+            vs1[5] = 6;
+
+            return ByteArrayEquals(vs1, checkRes.Respones.data);
+        }
+
+        public bool Write(byte slaveNum, string startAddress, int[] value)
+        {
+            UInt16[] tempArr = new UInt16[value.Length * 2];
+
+            for (int i = 0; i < value.Length; i++)
+            {
+                uint tempVar = (uint)value[i];
+                tempArr[i * 2] = (UInt16)(tempVar & 0x0000ffff);
+                tempArr[(i * 2) + 1] = (UInt16)(tempVar >> 16);
+            }
+
+            CmdCode cmdCode;
+            ushort address = 0;
+            if (startAddress.Contains("M") || startAddress.Contains("m"))
+            {
+                cmdCode = CmdCode.WriteMoreWordM;
+                address = ushort.Parse(startAddress.Substring(1));
+            }
+            else if (startAddress.Contains("SD") || startAddress.Contains("sd"))
+            {
+                cmdCode = CmdCode.WriteMoreWordSD;
+                address = ushort.Parse(startAddress.Substring(2));
+            }
+            else
+            {
+                return false;
+            }
+            byte[] vs = Uint16ToBytes(tempArr);
             RequestCmd cmd = new RequestCMDWriteMore(slaveNum, cmdCode, address, (UInt16)value.Length, vs);
             CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
             bool v = SendTo(cmd);//发送请求
@@ -894,6 +1041,17 @@ namespace InovanceModbusTCP
         }
 
         public byte[] Uint16ToBytes(UInt16[] value)
+        {
+            byte[] bytes = new byte[value.Length * 2];
+            for (int i = 0; i < value.Length; i++)
+            {
+                bytes[i * 2] = (byte)(value[i] >> 8);
+                bytes[(i * 2) + 1] = (byte)(value[i] & 0x00ff);
+            }
+            return bytes;
+        }
+
+        public byte[] Int16ToBytes(Int16[] value)
         {
             byte[] bytes = new byte[value.Length * 2];
             for (int i = 0; i < value.Length; i++)
