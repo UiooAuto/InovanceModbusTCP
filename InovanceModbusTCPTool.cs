@@ -15,10 +15,12 @@ namespace InovanceModbusTCP
         private Socket socket;//用于通信的套接字
         private IPAddress ipAddress;//服务器的IP地址
         private int port;//服务器的端口
+        private byte slaveNum;
+
         private IPEndPoint ipEndPoint;//服务器的通信节点
         private Thread readThread;//接受响应线程
         private Ping ping;//测试网络连接状态
-        private int overTime = 10000;//ping的超时时间
+        private int overTime = 1000;//ping的超时时间
         private int recLength;//接收到的数据长度
         private int recSessionNum;//接收到的会话号
         private byte[] recData;//接收到的数据包
@@ -27,20 +29,25 @@ namespace InovanceModbusTCP
 
         #region 构造方法及GetSet
 
-        public IPAddress IpAddress 
-        { 
+        public IPAddress IpAddress
+        {
             get => ipAddress;
-            set => ipAddress = value; 
+            set => ipAddress = value;
         }
-        public int Port 
-        { 
+        public int Port
+        {
             get => port;
-            set => port = value; 
+            set => port = value;
         }
-        public int OverTime 
-        { 
+        public int OverTime
+        {
             get => overTime;
-            set => overTime = value; 
+            set => overTime = value;
+        }
+        public byte SlaveNum
+        {
+            get => slaveNum;
+            set => slaveNum = value;
         }
 
         /// <summary>
@@ -48,17 +55,18 @@ namespace InovanceModbusTCP
         /// </summary>
         /// <param name="iPAddress">服务器IP</param>
         /// <param name="port">服务器端口</param>
-        public InovanceModbusTCPTool(string iPAddress, int port)
+        public InovanceModbusTCPTool(string iPAddress, int port, byte slaveNum)
         {
             this.ipAddress = IPAddress.Parse(iPAddress);
             this.port = port;
-            this.ipEndPoint = new IPEndPoint(ipAddress,port);
+            this.ipEndPoint = new IPEndPoint(ipAddress, port);
             this.ping = new Ping();
+            this.slaveNum = slaveNum;
         }
 
-        public InovanceModbusTCPTool()
+        /*public InovanceModbusTCPTool()
         {
-        }
+        }*/
 
         #endregion
 
@@ -211,8 +219,8 @@ namespace InovanceModbusTCP
         }
         #region 读取数据
 
-        /*#region 读取bool量
-
+        #region 读取bool量
+        /*
         /// <summary>
         /// 读取单个bool量
         /// </summary>
@@ -302,9 +310,9 @@ namespace InovanceModbusTCP
             Array.ConstrainedCopy(checkRes.Respones.data, 9, resultByte, 0, checkRes.Respones.data[8]);//从结果报文中获取结果内容
             readResult.data = ByteToBool(resultByte, reqNum);//将byte数组的结果转换为bool数组
             return readResult;
-        }
+        }*/
 
-        #endregion*/
+        #endregion
 
         #region 读取UInt16量
 
@@ -314,7 +322,7 @@ namespace InovanceModbusTCP
         /// <param name="slaveNum">从站号</param>
         /// <param name="startAddress">读取的地址</param>
         /// <returns>读取到的字</returns>
-        public ReadResult<UInt16> ReadUint16(byte slaveNum, string startAddress)
+        public ReadResult<UInt16> ReadU16(string startAddress)
         {
             ReadResult<UInt16> readResult = new ReadResult<UInt16>();//预备结果
             CmdCode cmdCode;
@@ -343,14 +351,14 @@ namespace InovanceModbusTCP
             checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
             checkThread.Abort();
 
-            readResult.success = checkRes.FindSuccess;
+            readResult.isSuccess = checkRes.FindSuccess;
             if (!checkRes.FindSuccess)
             {
                 return readResult;
             }
-            readResult.data = checkRes.Respones.data[9];
-            readResult.data = (UInt16)(readResult.data << 8);
-            readResult.data = (UInt16)(readResult.data | checkRes.Respones.data[10]);
+            readResult.result = checkRes.Respones.data[9];
+            readResult.result = (UInt16)(readResult.result << 8);
+            readResult.result = (UInt16)(readResult.result | checkRes.Respones.data[10]);
 
             return readResult;
         }
@@ -362,7 +370,7 @@ namespace InovanceModbusTCP
         /// <param name="startAddress">起始地址</param>
         /// <param name="reqNum">读取长度</param>
         /// <returns>读取到的字数组</returns>
-        public ReadResult<UInt16[]> ReadUint16(byte slaveNum, string startAddress, ushort reqNum)
+        public ReadResult<UInt16[]> ReadU16(string startAddress, ushort reqNum)
         {
             ReadResult<UInt16[]> readResult = new ReadResult<UInt16[]>();//预备结果
             CmdCode cmdCode;
@@ -391,14 +399,14 @@ namespace InovanceModbusTCP
             checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
             checkThread.Abort();
 
-            readResult.success = checkRes.FindSuccess;//结果查找成功
+            readResult.isSuccess = checkRes.FindSuccess;//结果查找成功
             if (!checkRes.FindSuccess)//如果查找不成功则直接返回失败结果
             {
                 return readResult;
             }
             byte[] resultByte = new byte[checkRes.Respones.data[8]];//如果查找成功，则新建结果数组
             Array.ConstrainedCopy(checkRes.Respones.data, 9, resultByte, 0, checkRes.Respones.data[8]);//从结果报文中获取结果内容
-            readResult.data = BytesToUInt16(resultByte);
+            readResult.result = BytesToUInt16(resultByte);
 
             return readResult;
         }
@@ -413,7 +421,7 @@ namespace InovanceModbusTCP
         /// <param name="slaveNum">从站号</param>
         /// <param name="startAddress">读取的地址</param>
         /// <returns>读取到的字</returns>
-        public ReadResult<Int16> ReadInt16(byte slaveNum, string startAddress)
+        public ReadResult<Int16> Read16(string startAddress)
         {
             ReadResult<Int16> readResult = new ReadResult<Int16>();//预备结果
             CmdCode cmdCode;
@@ -442,7 +450,7 @@ namespace InovanceModbusTCP
             checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
             checkThread.Abort();
 
-            readResult.success = checkRes.FindSuccess;
+            readResult.isSuccess = checkRes.FindSuccess;
             if (!checkRes.FindSuccess)
             {
                 return readResult;
@@ -452,7 +460,7 @@ namespace InovanceModbusTCP
             tempValue = (UInt16)(tempValue << 8);
             tempValue = (UInt16)(tempValue | (UInt16)checkRes.Respones.data[10]);
 
-            readResult.data = (Int16)tempValue;
+            readResult.result = (Int16)tempValue;
 
             return readResult;
         }
@@ -464,7 +472,7 @@ namespace InovanceModbusTCP
         /// <param name="startAddress">起始地址</param>
         /// <param name="reqNum">读取长度</param>
         /// <returns>读取到的字数组</returns>
-        public ReadResult<Int16[]> ReadInt16(byte slaveNum, string startAddress, ushort reqNum)
+        public ReadResult<Int16[]> Read16(string startAddress, ushort reqNum)
         {
             ReadResult<Int16[]> readResult = new ReadResult<Int16[]>();//预备结果
             CmdCode cmdCode;
@@ -493,7 +501,7 @@ namespace InovanceModbusTCP
             checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
             checkThread.Abort();
 
-            readResult.success = checkRes.FindSuccess;//结果查找成功
+            readResult.isSuccess = checkRes.FindSuccess;//结果查找成功
             if (!checkRes.FindSuccess)//如果查找不成功则直接返回失败结果
             {
                 return readResult;
@@ -501,11 +509,11 @@ namespace InovanceModbusTCP
             byte[] resultByte = new byte[checkRes.Respones.data[8]];//如果查找成功，则新建结果数组
             Array.ConstrainedCopy(checkRes.Respones.data, 9, resultByte, 0, checkRes.Respones.data[8]);//从结果报文中获取结果内容
             UInt16[] tempArr = BytesToUInt16(resultByte);
-            readResult.data = new Int16[tempArr.Length];
+            readResult.result = new Int16[tempArr.Length];
 
             for (int i = 0; i < tempArr.Length; i++)
             {
-                readResult.data[i] = (Int16)tempArr[i];
+                readResult.result[i] = (Int16)tempArr[i];
             }
 
             return readResult;
@@ -521,15 +529,15 @@ namespace InovanceModbusTCP
         /// <param name="slaveNum">从站号</param>
         /// <param name="startAddress">读取的地址</param>
         /// <returns>读取到的字</returns>
-        public ReadResult<uint> ReadUint32(byte slaveNum, string startAddress)
+        public ReadResult<uint> ReadU32(string startAddress)
         {
             ReadResult<uint> readResult = new ReadResult<uint>();//预备结果
 
-            ReadResult<ushort[]> readResultUint16 = ReadUint16(slaveNum, startAddress, 2);
+            ReadResult<ushort[]> readResultUint16 = ReadU16(startAddress, 2);
 
-            readResult.data = readResultUint16.data[1];
-            readResult.data = readResult.data << 16;
-            readResult.data = readResult.data | readResultUint16.data[0];
+            readResult.result = readResultUint16.result[1];
+            readResult.result = readResult.result << 16;
+            readResult.result = readResult.result | readResultUint16.result[0];
 
             return readResult;
         }
@@ -541,18 +549,18 @@ namespace InovanceModbusTCP
         /// <param name="startAddress">起始地址</param>
         /// <param name="reqNum">读取长度</param>
         /// <returns>读取到的字数组</returns>
-        public ReadResult<uint[]> ReadUint32(byte slaveNum, string startAddress, ushort reqNum)
+        public ReadResult<uint[]> ReadU32(string startAddress, ushort reqNum)
         {
             ReadResult<uint[]> readResult = new ReadResult<uint[]>();//预备结果
-            readResult.data = new uint[reqNum];
+            readResult.result = new uint[reqNum];
 
-            ReadResult<ushort[]> readResultUint16 = ReadUint16(slaveNum, startAddress, (UInt16)(2 * reqNum));
+            ReadResult<ushort[]> readResultUint16 = ReadU16(startAddress, (UInt16)(2 * reqNum));
 
             for (int i = 0; i < reqNum; i++)
             {
-                readResult.data[i] = readResultUint16.data[(2 * i) + 1];
-                readResult.data[i] = readResult.data[i] << 16;
-                readResult.data[i] = readResult.data[i] | readResultUint16.data[2 * i];
+                readResult.result[i] = readResultUint16.result[(2 * i) + 1];
+                readResult.result[i] = readResult.result[i] << 16;
+                readResult.result[i] = readResult.result[i] | readResultUint16.result[2 * i];
             }
 
             return readResult;
@@ -568,17 +576,17 @@ namespace InovanceModbusTCP
         /// <param name="slaveNum">从站号</param>
         /// <param name="startAddress">读取的地址</param>
         /// <returns>读取到的字</returns>
-        public ReadResult<int> Readint32(byte slaveNum, string startAddress)
+        public ReadResult<int> Read32(string startAddress)
         {
             ReadResult<int> readResult = new ReadResult<int>();//预备结果
             int result = 0;
 
-            ReadResult<ushort[]> readResultUint16 = ReadUint16(slaveNum, startAddress, 2);
+            ReadResult<ushort[]> readResultUint16 = ReadU16(startAddress, 2);
 
-            result = readResultUint16.data[1];
+            result = readResultUint16.result[1];
             result = result << 16;
-            result = result | readResultUint16.data[0];
-            readResult.data = result;
+            result = result | readResultUint16.result[0];
+            readResult.result = result;
 
             return readResult;
         }
@@ -590,20 +598,20 @@ namespace InovanceModbusTCP
         /// <param name="startAddress">起始地址</param>
         /// <param name="reqNum">读取长度</param>
         /// <returns>读取到的字数组</returns>
-        public ReadResult<int[]> Readint32(byte slaveNum, string startAddress, ushort reqNum)
+        public ReadResult<int[]> Read32(string startAddress, ushort reqNum)
         {
             ReadResult<int[]> readResult = new ReadResult<int[]>();//预备结果
-            readResult.data = new int[reqNum];
+            readResult.result = new int[reqNum];
 
-            ReadResult<ushort[]> readResultUint16 = ReadUint16(slaveNum, startAddress, (UInt16)(2 * reqNum));
+            ReadResult<ushort[]> readResultUint16 = ReadU16(startAddress, (UInt16)(2 * reqNum));
 
             for (int i = 0; i < reqNum; i++)
             {
                 uint tempVar;
-                tempVar = readResultUint16.data[(2 * i) + 1];
+                tempVar = readResultUint16.result[(2 * i) + 1];
                 tempVar = tempVar << 16;
-                tempVar = tempVar | readResultUint16.data[2 * i];
-                readResult.data[i] = (int)tempVar;
+                tempVar = tempVar | readResultUint16.result[2 * i];
+                readResult.result[i] = (int)tempVar;
             }
 
             return readResult;
@@ -650,11 +658,11 @@ namespace InovanceModbusTCP
             return ByteArrayEquals(cmd.GetBytes(), checkRes.Respones.data);
         }*/
 
-        public bool Write(byte slaveNum, string startAddress, UInt16 value)
+        public bool Write(string startAddress, UInt16 value)
         {
             CmdCode cmdCode;
             ushort address = 0;
-            if (startAddress.Contains("M")|| startAddress.Contains("m"))
+            if (startAddress.Contains("M") || startAddress.Contains("m"))
             {
                 cmdCode = CmdCode.WriteSingleWordM;
                 address = ushort.Parse(startAddress.Substring(1));
@@ -682,11 +690,11 @@ namespace InovanceModbusTCP
             return ByteArrayEquals(cmd.GetBytes(), checkRes.Respones.data);
         }
 
-        public bool Write(byte slaveNum, string startAddress, Int16 value)
+        public bool Write(string startAddress, Int16 value)
         {
             CmdCode cmdCode;
             ushort address = 0;
-            if (startAddress.Contains("M")|| startAddress.Contains("m"))
+            if (startAddress.Contains("M") || startAddress.Contains("m"))
             {
                 cmdCode = CmdCode.WriteSingleWordM;
                 address = ushort.Parse(startAddress.Substring(1));
@@ -714,23 +722,23 @@ namespace InovanceModbusTCP
             return ByteArrayEquals(cmd.GetBytes(), checkRes.Respones.data);
         }
 
-        public bool Write(byte slaveNum, string startAddress, uint value)
+        public bool Write(string startAddress, uint value)
         {
             UInt16[] tempArr = new UInt16[2];
             tempArr[0] = (UInt16)(value & 0x0000ffff);
             tempArr[1] = (UInt16)(value >> 16);
-            bool v = Write(slaveNum, startAddress, tempArr);
+            bool v = Write(startAddress, tempArr);
 
             return v;
         }
 
-        public bool Write(byte slaveNum, string startAddress, int value)
+        public bool Write(string startAddress, int value)
         {
             UInt16[] tempArr = new UInt16[2];
             uint valueU = (uint)value;
             tempArr[0] = (UInt16)(valueU & 0x0000ffff);
             tempArr[1] = (UInt16)(valueU >> 16);
-            bool v = Write(slaveNum, startAddress, tempArr);
+            bool v = Write(startAddress, tempArr);
 
             return v;
         }
@@ -777,7 +785,7 @@ namespace InovanceModbusTCP
             return ByteArrayEquals(vs1, checkRes.Respones.data);
         }*/
 
-        public bool Write(byte slaveNum, string startAddress, UInt16[] value)
+        public bool Write(string startAddress, UInt16[] value)
         {
             CmdCode cmdCode;
             ushort address = 0;
@@ -815,7 +823,7 @@ namespace InovanceModbusTCP
             return ByteArrayEquals(vs1, checkRes.Respones.data);
         }
 
-        public bool Write(byte slaveNum, string startAddress, Int16[] value)
+        public bool Write(string startAddress, Int16[] value)
         {
             CmdCode cmdCode;
             ushort address = 0;
@@ -853,7 +861,7 @@ namespace InovanceModbusTCP
             return ByteArrayEquals(vs1, checkRes.Respones.data);
         }
 
-        public bool Write(byte slaveNum, string startAddress, uint[] value)
+        public bool Write(string startAddress, uint[] value)
         {
             UInt16[] tempArr = new ushort[value.Length * 2];
 
@@ -899,7 +907,7 @@ namespace InovanceModbusTCP
             return ByteArrayEquals(vs1, checkRes.Respones.data);
         }
 
-        public bool Write(byte slaveNum, string startAddress, int[] value)
+        public bool Write(string startAddress, int[] value)
         {
             UInt16[] tempArr = new UInt16[value.Length * 2];
 
@@ -971,7 +979,7 @@ namespace InovanceModbusTCP
 
         public bool ByteToBool(byte value)
         {
-            return value == 0? false : true;
+            return value == 0 ? false : true;
         }
 
         /// <summary>
@@ -1011,7 +1019,7 @@ namespace InovanceModbusTCP
 
         public byte[] BoolsToBytes(bool[] values)
         {
-            byte[] result = new byte[(values.Length/8) + 1];
+            byte[] result = new byte[(values.Length / 8) + 1];
             for (int i = 0; i < result.Length; i++)
             {
                 result[i] = 0;
@@ -1030,7 +1038,7 @@ namespace InovanceModbusTCP
 
         public UInt16[] BytesToUInt16(byte[] bytes)
         {
-            UInt16[] ints = new UInt16[bytes.Length/2];
+            UInt16[] ints = new UInt16[bytes.Length / 2];
             for (int i = 0; i < ints.Length; i++)
             {
                 ints[i] = bytes[i * 2];
@@ -1075,13 +1083,13 @@ namespace InovanceModbusTCP
 
     public class ReadResult<T>
     {
-        public bool success;
-        public T data;
+        public bool isSuccess;
+        public T result;
 
         public ReadResult()
         {
-            this.success = false;
-            this.data = default(T);
+            this.isSuccess = false;
+            this.result = default(T);
         }
     }
 
@@ -1138,7 +1146,7 @@ namespace InovanceModbusTCP
 
         override public byte[] GetBytes()
         {
-            byte [] bytes = new byte[this.length+6];
+            byte[] bytes = new byte[this.length + 6];
             bytes[0] = (byte)(sessionNum >> 8);
             bytes[1] = (byte)(sessionNum & 0x00ff);
             bytes[2] = (byte)(tag >> 8);

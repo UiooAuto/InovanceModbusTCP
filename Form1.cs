@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -15,8 +14,6 @@ namespace InovanceModbusTCP
     public partial class Form1 : Form
     {
         InovanceModbusTCPTool plc;
-        Thread thread2;
-        Thread thread3;
         public Form1()
         {
             InitializeComponent();
@@ -34,7 +31,7 @@ namespace InovanceModbusTCP
         {
             if (connect.Text == "连接")
             {
-                plc = new InovanceModbusTCPTool(tb_ip.Text, int.Parse(tb_port.Text));
+                plc = new InovanceModbusTCPTool(tb_ip.Text, int.Parse(tb_port.Text), 1);
                 plc.Connect();
                 connect.Text = "断开";
                 Show("连接");
@@ -55,7 +52,7 @@ namespace InovanceModbusTCP
                 ReadResult<bool[]> readResult = plc.ReadBoolean(1, tb_ReadBoolAddress.Text, (UInt16)num);
                 if (readResult.success)
                 {
-                    Show(JsonConvert.SerializeObject(readResult.data));
+                    Show(JsonConvert.SerializeObject(readResult.result));
                 }
                 else
                 {
@@ -67,7 +64,7 @@ namespace InovanceModbusTCP
                 ReadResult<bool> readResult = plc.ReadBoolean(1, tb_ReadBoolAddress.Text);
                 if (readResult.success)
                 {
-                    Show(readResult.data.ToString());
+                    Show(readResult.result.ToString());
                 }
                 else
                 {
@@ -81,10 +78,10 @@ namespace InovanceModbusTCP
             int num;
             if (int.TryParse(tb_ReadWordLength.Text, out num))
             {
-                ReadResult<UInt16[]> readResult = plc.ReadUint16(1, tb_ReadWordAddress.Text, (UInt16)num);
-                if (readResult.success)
+                ReadResult<UInt16[]> readResult = plc.ReadU16(tb_ReadWordAddress.Text, (UInt16)num);
+                if (readResult.isSuccess)
                 {
-                    Show(JsonConvert.SerializeObject(readResult.data));
+                    Show(JsonConvert.SerializeObject(readResult.result));
                 }
                 else
                 {
@@ -93,10 +90,10 @@ namespace InovanceModbusTCP
             }
             else
             {
-                ReadResult<UInt16> readResult = plc.ReadUint16(1, tb_ReadWordAddress.Text);
-                if (readResult.success)
+                ReadResult<UInt16> readResult = plc.ReadU16(tb_ReadWordAddress.Text);
+                if (readResult.isSuccess)
                 {
-                    Show(readResult.data.ToString());
+                    Show(readResult.result.ToString());
                 }
                 else
                 {
@@ -143,11 +140,11 @@ namespace InovanceModbusTCP
                 {
                     uint16s[i] = UInt16.Parse(strings[i]);
                 }
-                v = plc.Write(1, tb_WriteWordAddress.Text, uint16s);
+                v = plc.Write(tb_WriteWordAddress.Text, uint16s);
             }
             else
             {
-                v = plc.Write(1, tb_WriteWordAddress.Text, UInt16.Parse(tb_WriteWordValue.Text));
+                v = plc.Write(tb_WriteWordAddress.Text, UInt16.Parse(tb_WriteWordValue.Text));
             }
             if (v)
             {
