@@ -20,7 +20,7 @@ namespace InovanceModbusTCP
         private IPEndPoint ipEndPoint;//服务器的通信节点
         private Thread readThread;//接受响应线程
         private Ping ping;//测试网络连接状态
-        private int overTime = 1000;//ping的超时时间
+        private int overTime = 5000;//ping的超时时间
         private int recLength;//接收到的数据长度
         private int recSessionNum;//接收到的会话号
         private byte[] recData;//接收到的数据包
@@ -94,7 +94,7 @@ namespace InovanceModbusTCP
                 {
                     this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                     this.socket.SendTimeout = overTime;
-                    this.socket.ReceiveTimeout = overTime;
+                    //this.socket.ReceiveTimeout = overTime;
                     this.socket.Connect(this.ipEndPoint);
                 }
                 else
@@ -220,14 +220,14 @@ namespace InovanceModbusTCP
         #region 读取数据
 
         #region 读取bool量
-        /*
+
         /// <summary>
         /// 读取单个bool量
         /// </summary>
         /// <param name="slaveNum">从站号</param>
         /// <param name="startAddress">读取的地址</param>
         /// <returns></returns>
-        public ReadResult<bool> ReadBoolean(byte slaveNum, string startAddress)
+        public ReadResult<bool> ReadBoolean(string startAddress)
         {
             ReadResult<bool> readResult = new ReadResult<bool>();//预备结果
             CmdCode cmdCode;
@@ -256,13 +256,13 @@ namespace InovanceModbusTCP
             checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
             checkThread.Abort();
 
-            readResult.success = checkRes.FindSuccess;
+            readResult.isSuccess = checkRes.FindSuccess;
             if (!checkRes.FindSuccess)
             {
                 return readResult;
             }
 
-            readResult.data = ByteToBool(checkRes.Respones.data[9]);
+            readResult.result = ByteToBool(checkRes.Respones.data[9]);
             return readResult;
         }
 
@@ -273,7 +273,7 @@ namespace InovanceModbusTCP
         /// <param name="startAddress">起始地址</param>
         /// <param name="reqNum">读取长度</param>
         /// <returns></returns>
-        public ReadResult<bool[]> ReadBoolean(byte slaveNum, string startAddress, ushort reqNum)
+        public ReadResult<bool[]> ReadBoolean(string startAddress, ushort reqNum)
         {
             ReadResult<bool[]> readResult = new ReadResult<bool[]>();//预备结果
             CmdCode cmdCode;
@@ -301,16 +301,16 @@ namespace InovanceModbusTCP
             checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
             checkThread.Abort();
 
-            readResult.success = checkRes.FindSuccess;//结果查找成功
+            readResult.isSuccess = checkRes.FindSuccess;//结果查找成功
             if (!checkRes.FindSuccess)//如果查找不成功则直接返回失败结果
             {
                 return readResult;
             }
             byte[] resultByte = new byte[checkRes.Respones.data[8]];//如果查找成功，则新建结果数组
             Array.ConstrainedCopy(checkRes.Respones.data, 9, resultByte, 0, checkRes.Respones.data[8]);//从结果报文中获取结果内容
-            readResult.data = ByteToBool(resultByte, reqNum);//将byte数组的结果转换为bool数组
+            readResult.result = ByteToBool(resultByte, reqNum);//将byte数组的结果转换为bool数组
             return readResult;
-        }*/
+        }
 
         #endregion
 
@@ -535,6 +535,7 @@ namespace InovanceModbusTCP
 
             ReadResult<ushort[]> readResultUint16 = ReadU16(startAddress, 2);
 
+            readResult.isSuccess = readResultUint16.isSuccess;
             readResult.result = readResultUint16.result[1];
             readResult.result = readResult.result << 16;
             readResult.result = readResult.result | readResultUint16.result[0];
@@ -556,6 +557,7 @@ namespace InovanceModbusTCP
 
             ReadResult<ushort[]> readResultUint16 = ReadU16(startAddress, (UInt16)(2 * reqNum));
 
+            readResult.isSuccess = readResultUint16.isSuccess;
             for (int i = 0; i < reqNum; i++)
             {
                 readResult.result[i] = readResultUint16.result[(2 * i) + 1];
@@ -583,6 +585,7 @@ namespace InovanceModbusTCP
 
             ReadResult<ushort[]> readResultUint16 = ReadU16(startAddress, 2);
 
+            readResult.isSuccess = readResultUint16.isSuccess;
             result = readResultUint16.result[1];
             result = result << 16;
             result = result | readResultUint16.result[0];
@@ -605,6 +608,7 @@ namespace InovanceModbusTCP
 
             ReadResult<ushort[]> readResultUint16 = ReadU16(startAddress, (UInt16)(2 * reqNum));
 
+            readResult.isSuccess = readResultUint16.isSuccess;
             for (int i = 0; i < reqNum; i++)
             {
                 uint tempVar;
@@ -625,11 +629,11 @@ namespace InovanceModbusTCP
 
         #region 单个写入
 
-        /*public bool Write(byte slaveNum, string startAddress, bool value)
+        public bool Write(string startAddress, bool value)
         {
             CmdCode cmdCode;
             ushort address = 0;
-            if (startAddress.Contains("Q")|| startAddress.Contains("q"))
+            if (startAddress.Contains("Q") || startAddress.Contains("q"))
             {
                 cmdCode = CmdCode.WriteSingleBooleanQ;
                 address = ushort.Parse(startAddress.Substring(1));
@@ -651,12 +655,14 @@ namespace InovanceModbusTCP
             checkThread.IsBackground = true;
             checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
             checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
+            checkThread.Abort();
+
             if (!checkRes.FindSuccess)
             {
                 return false;
             }
             return ByteArrayEquals(cmd.GetBytes(), checkRes.Respones.data);
-        }*/
+        }
 
         public bool Write(string startAddress, UInt16 value)
         {
@@ -683,6 +689,8 @@ namespace InovanceModbusTCP
             checkThread.IsBackground = true;
             checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
             checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
+            checkThread.Abort();
+
             if (!checkRes.FindSuccess)
             {
                 return false;
@@ -715,6 +723,8 @@ namespace InovanceModbusTCP
             checkThread.IsBackground = true;
             checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
             checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
+            checkThread.Abort();
+
             if (!checkRes.FindSuccess)
             {
                 return false;
@@ -747,7 +757,7 @@ namespace InovanceModbusTCP
 
         #region 多个写入
 
-        /*public bool Write(byte slaveNum, string startAddress, bool[] value)
+        public bool Write(string startAddress, bool[] value)
         {
             CmdCode cmdCode;
             ushort address = 0;
@@ -773,6 +783,8 @@ namespace InovanceModbusTCP
             checkThread.IsBackground = true;
             checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
             checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
+            checkThread.Abort();
+
             if (!checkRes.FindSuccess)
             {
                 return false;
@@ -783,7 +795,7 @@ namespace InovanceModbusTCP
             vs1[5] = 6;
 
             return ByteArrayEquals(vs1, checkRes.Respones.data);
-        }*/
+        }
 
         public bool Write(string startAddress, UInt16[] value)
         {
@@ -811,6 +823,8 @@ namespace InovanceModbusTCP
             checkThread.IsBackground = true;
             checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
             checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
+            checkThread.Abort();
+
             if (!checkRes.FindSuccess)
             {
                 return false;
@@ -849,6 +863,8 @@ namespace InovanceModbusTCP
             checkThread.IsBackground = true;
             checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
             checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
+            checkThread.Abort();
+
             if (!checkRes.FindSuccess)
             {
                 return false;
@@ -871,7 +887,9 @@ namespace InovanceModbusTCP
                 tempArr[(i * 2) + 1] = (UInt16)(value[i] >> 16);
             }
 
-            CmdCode cmdCode;
+            bool v = Write(startAddress, tempArr);
+
+            /*CmdCode cmdCode;
             ushort address = 0;
             if (startAddress.Contains("M") || startAddress.Contains("m"))
             {
@@ -888,7 +906,7 @@ namespace InovanceModbusTCP
                 return false;
             }
             byte[] vs = Uint16ToBytes(tempArr);
-            RequestCmd cmd = new RequestCMDWriteMore(slaveNum, cmdCode, address, (UInt16)value.Length, vs);
+            RequestCmd cmd = new RequestCMDWriteMore(slaveNum, cmdCode, address, (UInt16)(value.Length * 2), vs);
             CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
             bool v = SendTo(cmd);//发送请求
             Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
@@ -902,9 +920,9 @@ namespace InovanceModbusTCP
 
             byte[] vs1 = MakeTargetRespones(cmd.GetBytes());
             vs1[4] = 0;
-            vs1[5] = 6;
+            vs1[5] = 6;*/
 
-            return ByteArrayEquals(vs1, checkRes.Respones.data);
+            return v;
         }
 
         public bool Write(string startAddress, int[] value)
@@ -918,40 +936,9 @@ namespace InovanceModbusTCP
                 tempArr[(i * 2) + 1] = (UInt16)(tempVar >> 16);
             }
 
-            CmdCode cmdCode;
-            ushort address = 0;
-            if (startAddress.Contains("M") || startAddress.Contains("m"))
-            {
-                cmdCode = CmdCode.WriteMoreWordM;
-                address = ushort.Parse(startAddress.Substring(1));
-            }
-            else if (startAddress.Contains("SD") || startAddress.Contains("sd"))
-            {
-                cmdCode = CmdCode.WriteMoreWordSD;
-                address = ushort.Parse(startAddress.Substring(2));
-            }
-            else
-            {
-                return false;
-            }
-            byte[] vs = Uint16ToBytes(tempArr);
-            RequestCmd cmd = new RequestCMDWriteMore(slaveNum, cmdCode, address, (UInt16)value.Length, vs);
-            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
-            bool v = SendTo(cmd);//发送请求
-            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
-            checkThread.IsBackground = true;
-            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
-            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
-            if (!checkRes.FindSuccess)
-            {
-                return false;
-            }
+            bool v = Write(startAddress, tempArr);
 
-            byte[] vs1 = MakeTargetRespones(cmd.GetBytes());
-            vs1[4] = 0;
-            vs1[5] = 6;
-
-            return ByteArrayEquals(vs1, checkRes.Respones.data);
+            return v;
         }
 
         #endregion

@@ -31,8 +31,13 @@ namespace InovanceModbusTCP
         {
             if (connect.Text == "连接")
             {
-                plc = new InovanceModbusTCPTool(tb_ip.Text, int.Parse(tb_port.Text), 1);
-                plc.Connect();
+                plc = new InovanceModbusTCPTool(tb_ip.Text, int.Parse(tb_port.Text), byte.Parse(tb_SlaveNum.Text));
+                bool v = plc.Connect();
+                if (!v)
+                {
+                    Show("连接失败");
+                    return;
+                }
                 connect.Text = "断开";
                 Show("连接");
             }
@@ -46,11 +51,11 @@ namespace InovanceModbusTCP
 
         private void btn_ReadBool_Click(object sender, EventArgs e)
         {
-            /*int num;
+            int num;
             if (int.TryParse(tb_ReadBoolLength.Text, out num))
             {
-                ReadResult<bool[]> readResult = plc.ReadBoolean(1, tb_ReadBoolAddress.Text, (UInt16)num);
-                if (readResult.success)
+                ReadResult<bool[]> readResult = plc.ReadBoolean(tb_ReadBoolAddress.Text, (UInt16)num);
+                if (readResult.isSuccess)
                 {
                     Show(JsonConvert.SerializeObject(readResult.result));
                 }
@@ -61,8 +66,8 @@ namespace InovanceModbusTCP
             }
             else
             {
-                ReadResult<bool> readResult = plc.ReadBoolean(1, tb_ReadBoolAddress.Text);
-                if (readResult.success)
+                ReadResult<bool> readResult = plc.ReadBoolean(tb_ReadBoolAddress.Text);
+                if (readResult.isSuccess)
                 {
                     Show(readResult.result.ToString());
                 }
@@ -70,7 +75,7 @@ namespace InovanceModbusTCP
                 {
                     Show("读取失败");
                 }
-            }  */          
+            }
         }
 
         private void btn_ReadWord_Click(object sender, EventArgs e)
@@ -104,7 +109,12 @@ namespace InovanceModbusTCP
 
         private void btn_WriteBool_Click(object sender, EventArgs e)
         {
-            /*bool v;
+            bool v;
+            if (tb_WriteBoolValue.Text.Contains('，'))
+            {
+                MessageBox.Show("请使用英文逗号分隔");
+                return;
+            }
             if (tb_WriteBoolValue.Text.Contains(','))
             {
                 string[] strings = tb_WriteBoolValue.Text.Split(',');
@@ -113,11 +123,11 @@ namespace InovanceModbusTCP
                 {
                     bools[i] = StringToBool(strings[i]);
                 }
-                v = plc.Write(1, tb_WriteBoolAddress.Text, bools);
+                v = plc.Write(tb_WriteBoolAddress.Text, bools);
             }
             else
             {
-                v = plc.Write(1, tb_WriteBoolAddress.Text, StringToBool(tb_WriteBoolValue.Text));
+                v = plc.Write(tb_WriteBoolAddress.Text, StringToBool(tb_WriteBoolValue.Text));
             }
             if (v)
             {
@@ -126,12 +136,18 @@ namespace InovanceModbusTCP
             else
             {
                 Show("写入失败");
-            }*/
+            }
         }
 
         private void btn_WriteWord_Click(object sender, EventArgs e)
         {
             bool v;
+
+            if (tb_WriteBoolValue.Text.Contains('，'))
+            {
+                MessageBox.Show("请使用英文逗号分隔");
+                return;
+            }
             if (tb_WriteWordValue.Text.Contains(','))
             {
                 string[] strings = tb_WriteWordValue.Text.Split(',');
@@ -175,6 +191,68 @@ namespace InovanceModbusTCP
             else
             {
                 return false;
+            }
+        }
+
+        private void btn_ReadDWord_Click(object sender, EventArgs e)
+        {
+            int num;
+            if (int.TryParse(tb_ReadDWordLength.Text, out num))
+            {
+                ReadResult<uint[]> readResult = plc.ReadU32(tb_ReadDWordAddress.Text, (UInt16)num);
+                if (readResult.isSuccess)
+                {
+                    Show(JsonConvert.SerializeObject(readResult.result));
+                }
+                else
+                {
+                    Show("读取失败");
+                }
+            }
+            else
+            {
+                ReadResult<uint> readResult = plc.ReadU32(tb_ReadDWordAddress.Text);
+                if (readResult.isSuccess)
+                {
+                    Show(readResult.result.ToString());
+                }
+                else
+                {
+                    Show("读取失败");
+                }
+            }
+        }
+
+        private void btn_WriteDWord_Click(object sender, EventArgs e)
+        {
+            bool v;
+
+            if (tb_WriteBoolValue.Text.Contains('，'))
+            {
+                MessageBox.Show("请使用英文逗号分隔");
+                return;
+            }
+            if (tb_WriteDWordValue.Text.Contains(','))
+            {
+                string[] strings = tb_WriteDWordValue.Text.Split(',');
+                uint[] uints = new uint[strings.Length];
+                for (int i = 0; i < strings.Length; i++)
+                {
+                    uints[i] = uint.Parse(strings[i]);
+                }
+                v = plc.Write(tb_WriteDWordAddress.Text, uints);
+            }
+            else
+            {
+                v = plc.Write(tb_WriteDWordAddress.Text, uint.Parse(tb_WriteDWordValue.Text));
+            }
+            if (v)
+            {
+                Show("写入成功");
+            }
+            else
+            {
+                Show("写入失败");
             }
         }
     }
