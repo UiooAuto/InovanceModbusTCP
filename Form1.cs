@@ -23,7 +23,7 @@ namespace InovanceModbusTCP
 
         public void Show(string str)
         {
-            listBox1.Items.Add(DateTime.Now.ToString("HH:mm:ss.fff") + "-" + str);
+            listBox1.Items.Add(DateTime.Now.ToString("HH:mm:ss.fff") + "- " + str);
             listBox1.SelectedIndex = listBox1.Items.Count - 1;
         }
 
@@ -83,26 +83,59 @@ namespace InovanceModbusTCP
             int num;
             if (int.TryParse(tb_ReadWordLength.Text, out num))
             {
-                ReadResult<UInt16[]> readResult = plc.ReadU16(tb_ReadWordAddress.Text, (UInt16)num);
-                if (readResult.isSuccess)
+
+                if (cb_IsNotUWord.Checked)
                 {
-                    Show(JsonConvert.SerializeObject(readResult.result));
+                    ReadResult<Int16[]> readResult = plc.Read16(tb_ReadWordAddress.Text, (UInt16)num);
+
+                    if (readResult.isSuccess)
+                    {
+                        Show(JsonConvert.SerializeObject(readResult.result));
+                    }
+                    else
+                    {
+                        Show("读取失败");
+                    }
                 }
                 else
                 {
-                    Show("读取失败");
-                }
+                    ReadResult<UInt16[]> readResult = plc.ReadU16(tb_ReadWordAddress.Text, (UInt16)num);
+
+                    if (readResult.isSuccess)
+                    {
+                        Show(JsonConvert.SerializeObject(readResult.result));
+                    }
+                    else
+                    {
+                        Show("读取失败");
+                    }
+                }                
             }
             else
             {
-                ReadResult<UInt16> readResult = plc.ReadU16(tb_ReadWordAddress.Text);
-                if (readResult.isSuccess)
+                if (cb_IsNotUWord.Checked)
                 {
-                    Show(readResult.result.ToString());
+                    ReadResult<Int16> readResult = plc.Read16(tb_ReadWordAddress.Text);
+                    if (readResult.isSuccess)
+                    {
+                        Show(readResult.result.ToString());
+                    }
+                    else
+                    {
+                        Show("读取失败");
+                    }
                 }
                 else
                 {
-                    Show("读取失败");
+                    ReadResult<UInt16> readResult = plc.ReadU16(tb_ReadWordAddress.Text);
+                    if (readResult.isSuccess)
+                    {
+                        Show(readResult.result.ToString());
+                    }
+                    else
+                    {
+                        Show("读取失败");
+                    }
                 }
             }
         }
@@ -151,16 +184,38 @@ namespace InovanceModbusTCP
             if (tb_WriteWordValue.Text.Contains(','))
             {
                 string[] strings = tb_WriteWordValue.Text.Split(',');
-                UInt16[] uint16s = new UInt16[strings.Length];
-                for (int i = 0; i < strings.Length; i++)
+
+                if (cb_IsNotUWord.Checked)
                 {
-                    uint16s[i] = UInt16.Parse(strings[i]);
+                    Int16[] int16s = new Int16[strings.Length];
+                    for (int i = 0; i < strings.Length; i++)
+                    {
+                        int16s[i] = Int16.Parse(strings[i]);
+                    }
+                    v = plc.Write(tb_WriteWordAddress.Text, int16s);
                 }
-                v = plc.Write(tb_WriteWordAddress.Text, uint16s);
+                else
+                {
+                    UInt16[] uint16s = new UInt16[strings.Length];
+                    for (int i = 0; i < strings.Length; i++)
+                    {
+                        uint16s[i] = UInt16.Parse(strings[i]);
+                    }
+                    v = plc.Write(tb_WriteWordAddress.Text, uint16s);
+                }
+
             }
             else
             {
-                v = plc.Write(tb_WriteWordAddress.Text, UInt16.Parse(tb_WriteWordValue.Text));
+                if (cb_IsNotUWord.Checked)
+                {
+                    v = plc.Write(tb_WriteWordAddress.Text, Int16.Parse(tb_WriteWordValue.Text));
+
+                }
+                else
+                {
+                    v = plc.Write(tb_WriteWordAddress.Text, UInt16.Parse(tb_WriteWordValue.Text));
+                }
             }
             if (v)
             {
@@ -199,19 +254,34 @@ namespace InovanceModbusTCP
             int num;
             if (int.TryParse(tb_ReadDWordLength.Text, out num))
             {
-                ReadResult<uint[]> readResult = plc.ReadU32(tb_ReadDWordAddress.Text, (UInt16)num);
-                if (readResult.isSuccess)
+                if (cb_IsNotUDWord.Checked)
                 {
-                    Show(JsonConvert.SerializeObject(readResult.result));
+                    ReadResult<int[]> readResult = plc.Read32(tb_ReadDWordAddress.Text, (UInt16)num);
+                    if (readResult.isSuccess)
+                    {
+                        Show(JsonConvert.SerializeObject(readResult.result));
+                    }
+                    else
+                    {
+                        Show("读取失败");
+                    }
                 }
                 else
                 {
-                    Show("读取失败");
+                    ReadResult<uint[]> readResult = plc.ReadU32(tb_ReadDWordAddress.Text, (UInt16)num);
+                    if (readResult.isSuccess)
+                    {
+                        Show(JsonConvert.SerializeObject(readResult.result));
+                    }
+                    else
+                    {
+                        Show("读取失败");
+                    }
                 }
             }
             else
             {
-                ReadResult<uint> readResult = plc.ReadU32(tb_ReadDWordAddress.Text);
+                ReadResult<int> readResult = plc.Read32(tb_ReadDWordAddress.Text);
                 if (readResult.isSuccess)
                 {
                     Show(readResult.result.ToString());
@@ -232,27 +302,76 @@ namespace InovanceModbusTCP
                 MessageBox.Show("请使用英文逗号分隔");
                 return;
             }
+
             if (tb_WriteDWordValue.Text.Contains(','))
             {
                 string[] strings = tb_WriteDWordValue.Text.Split(',');
-                uint[] uints = new uint[strings.Length];
-                for (int i = 0; i < strings.Length; i++)
+
+                if (cb_IsNotUDWord.Checked)
                 {
-                    uints[i] = uint.Parse(strings[i]);
+                    int[] ints = new int[strings.Length];
+                    for (int i = 0; i < strings.Length; i++)
+                    {
+                        ints[i] = int.Parse(strings[i]);
+                    }
+                    v = plc.Write(tb_WriteDWordAddress.Text, ints);
+
+                    if (v)
+                    {
+                        Show("写入成功");
+                    }
+                    else
+                    {
+                        Show("写入失败");
+                    }
                 }
-                v = plc.Write(tb_WriteDWordAddress.Text, uints);
+                else
+                {
+                    uint[] uints = new uint[strings.Length];
+                    for (int i = 0; i < strings.Length; i++)
+                    {
+                        uints[i] = uint.Parse(strings[i]);
+                    }
+                    v = plc.Write(tb_WriteDWordAddress.Text, uints);
+
+                    if (v)
+                    {
+                        Show("写入成功");
+                    }
+                    else
+                    {
+                        Show("写入失败");
+                    }
+                }
             }
             else
             {
-                v = plc.Write(tb_WriteDWordAddress.Text, uint.Parse(tb_WriteDWordValue.Text));
-            }
-            if (v)
-            {
-                Show("写入成功");
-            }
-            else
-            {
-                Show("写入失败");
+                if (cb_IsNotUDWord.Checked)
+                {
+                    v = plc.Write(tb_WriteDWordAddress.Text, int.Parse(tb_WriteDWordValue.Text));
+
+                    if (v)
+                    {
+                        Show("写入成功");
+                    }
+                    else
+                    {
+                        Show("写入失败");
+                    }
+                }
+                else
+                {
+                    v = plc.Write(tb_WriteDWordAddress.Text, uint.Parse(tb_WriteDWordValue.Text));
+
+                    if (v)
+                    {
+                        Show("写入成功");
+                    }
+                    else
+                    {
+                        Show("写入失败");
+                    }
+                }
             }
         }
     }

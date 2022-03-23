@@ -58,6 +58,8 @@
             this.label5 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.tb_SlaveNum = new System.Windows.Forms.TextBox();
+            this.cb_IsNotUWord = new System.Windows.Forms.CheckBox();
+            this.cb_IsNotUDWord = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // connect
@@ -138,7 +140,7 @@
             // 
             this.tb_WriteBoolValue.Location = new System.Drawing.Point(153, 144);
             this.tb_WriteBoolValue.Name = "tb_WriteBoolValue";
-            this.tb_WriteBoolValue.Size = new System.Drawing.Size(345, 21);
+            this.tb_WriteBoolValue.Size = new System.Drawing.Size(312, 21);
             this.tb_WriteBoolValue.TabIndex = 12;
             // 
             // tb_WriteWordAddress
@@ -153,7 +155,7 @@
             // 
             this.tb_WriteWordValue.Location = new System.Drawing.Point(153, 234);
             this.tb_WriteWordValue.Name = "tb_WriteWordValue";
-            this.tb_WriteWordValue.Size = new System.Drawing.Size(345, 21);
+            this.tb_WriteWordValue.Size = new System.Drawing.Size(312, 21);
             this.tb_WriteWordValue.TabIndex = 15;
             // 
             // btn_ReadWord
@@ -219,7 +221,7 @@
             // 
             this.tb_WriteDWordValue.Location = new System.Drawing.Point(153, 318);
             this.tb_WriteDWordValue.Name = "tb_WriteDWordValue";
-            this.tb_WriteDWordValue.Size = new System.Drawing.Size(345, 21);
+            this.tb_WriteDWordValue.Size = new System.Drawing.Size(312, 21);
             this.tb_WriteDWordValue.TabIndex = 24;
             // 
             // tb_WriteDWordAddress
@@ -307,11 +309,35 @@
             this.tb_SlaveNum.TabIndex = 32;
             this.tb_SlaveNum.Text = "1";
             // 
+            // cb_IsNotUWord
+            // 
+            this.cb_IsNotUWord.AutoSize = true;
+            this.cb_IsNotUWord.Location = new System.Drawing.Point(277, 199);
+            this.cb_IsNotUWord.Name = "cb_IsNotUWord";
+            this.cb_IsNotUWord.Size = new System.Drawing.Size(60, 16);
+            this.cb_IsNotUWord.TabIndex = 34;
+            this.cb_IsNotUWord.Text = "有符号";
+            this.cb_IsNotUWord.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.cb_IsNotUWord.UseVisualStyleBackColor = true;
+            // 
+            // cb_IsNotUDWord
+            // 
+            this.cb_IsNotUDWord.AutoSize = true;
+            this.cb_IsNotUDWord.Location = new System.Drawing.Point(277, 283);
+            this.cb_IsNotUDWord.Name = "cb_IsNotUDWord";
+            this.cb_IsNotUDWord.Size = new System.Drawing.Size(60, 16);
+            this.cb_IsNotUDWord.TabIndex = 35;
+            this.cb_IsNotUDWord.Text = "有符号";
+            this.cb_IsNotUDWord.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.cb_IsNotUDWord.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(674, 450);
+            this.Controls.Add(this.cb_IsNotUDWord);
+            this.Controls.Add(this.cb_IsNotUWord);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.tb_SlaveNum);
             this.Controls.Add(this.label5);
@@ -379,6 +405,8 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox tb_SlaveNum;
+        private System.Windows.Forms.CheckBox cb_IsNotUWord;
+        private System.Windows.Forms.CheckBox cb_IsNotUDWord;
     }
 }
 
