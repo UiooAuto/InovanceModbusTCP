@@ -14,6 +14,7 @@ namespace InovanceModbusTCP
     public partial class Form1 : Form
     {
         InovanceModbusTCPTool plc;
+        Thread readThread;
         public Form1()
         {
             InitializeComponent();
@@ -83,6 +84,13 @@ namespace InovanceModbusTCP
             int num;
             if (int.TryParse(tb_ReadWordLength.Text, out num))
             {
+                if (cb_ThreadReadOpen.Checked)
+                {
+                    readThread = new Thread(ReadThread1);
+                    readThread.IsBackground = true;
+                    readThread.Start();
+                    return;
+                }
 
                 if (cb_IsNotUWord.Checked)
                 {
@@ -140,6 +148,37 @@ namespace InovanceModbusTCP
             }
         }
 
+        private void ReadThread1()
+        {
+            while (true)
+            {
+                ReadResult<Int16[]> readResult = plc.Read16(tb_ReadWordAddress.Text, (UInt16)int.Parse(tb_ReadWordLength.Text));
+                if (readResult.isSuccess)
+                {
+                    Show(JsonConvert.SerializeObject(readResult.result));
+                }
+                else
+                {
+                    Show("读取失败");
+                }
+            }
+        }
+        private void ReadThread2()
+        {
+            while (true)
+            {
+                ReadResult<int[]> readResult = plc.Read32(tb_ReadDWordAddress.Text, (UInt16)int.Parse(tb_ReadDWordLength.Text));
+                if (readResult.isSuccess)
+                {
+                    Show(JsonConvert.SerializeObject(readResult.result));
+                }
+                else
+                {
+                    Show("读取失败");
+                }
+            }
+        }
+
         private void btn_WriteBool_Click(object sender, EventArgs e)
         {
             bool v;
@@ -192,6 +231,7 @@ namespace InovanceModbusTCP
                     {
                         int16s[i] = Int16.Parse(strings[i]);
                     }
+                    Show("开始写入");
                     v = plc.Write(tb_WriteWordAddress.Text, int16s);
                 }
                 else
@@ -201,6 +241,7 @@ namespace InovanceModbusTCP
                     {
                         uint16s[i] = UInt16.Parse(strings[i]);
                     }
+                    Show("开始写入");
                     v = plc.Write(tb_WriteWordAddress.Text, uint16s);
                 }
 
@@ -209,11 +250,13 @@ namespace InovanceModbusTCP
             {
                 if (cb_IsNotUWord.Checked)
                 {
+                    Show("开始写入");
                     v = plc.Write(tb_WriteWordAddress.Text, Int16.Parse(tb_WriteWordValue.Text));
 
                 }
                 else
                 {
+                    Show("开始写入");
                     v = plc.Write(tb_WriteWordAddress.Text, UInt16.Parse(tb_WriteWordValue.Text));
                 }
             }
@@ -254,6 +297,13 @@ namespace InovanceModbusTCP
             int num;
             if (int.TryParse(tb_ReadDWordLength.Text, out num))
             {
+                if (cb_ThreadReadOpen.Checked)
+                {
+                    readThread = new Thread(ReadThread2);
+                    readThread.IsBackground = true;
+                    readThread.Start();
+                    return;
+                }
                 if (cb_IsNotUDWord.Checked)
                 {
                     ReadResult<int[]> readResult = plc.Read32(tb_ReadDWordAddress.Text, (UInt16)num);
@@ -314,6 +364,7 @@ namespace InovanceModbusTCP
                     {
                         ints[i] = int.Parse(strings[i]);
                     }
+                    Show("开始写入");
                     v = plc.Write(tb_WriteDWordAddress.Text, ints);
 
                     if (v)
@@ -332,6 +383,7 @@ namespace InovanceModbusTCP
                     {
                         uints[i] = uint.Parse(strings[i]);
                     }
+                    Show("开始写入");
                     v = plc.Write(tb_WriteDWordAddress.Text, uints);
 
                     if (v)
@@ -348,6 +400,7 @@ namespace InovanceModbusTCP
             {
                 if (cb_IsNotUDWord.Checked)
                 {
+                    Show("开始写入");
                     v = plc.Write(tb_WriteDWordAddress.Text, int.Parse(tb_WriteDWordValue.Text));
 
                     if (v)
@@ -361,6 +414,7 @@ namespace InovanceModbusTCP
                 }
                 else
                 {
+                    Show("开始写入");
                     v = plc.Write(tb_WriteDWordAddress.Text, uint.Parse(tb_WriteDWordValue.Text));
 
                     if (v)
@@ -372,6 +426,14 @@ namespace InovanceModbusTCP
                         Show("写入失败");
                     }
                 }
+            }
+        }
+
+        private void btn_StopThreadRead_Click(object sender, EventArgs e)
+        {
+            if (readThread != null)
+            {
+                readThread.Abort();
             }
         }
     }

@@ -60,6 +60,9 @@
             this.tb_SlaveNum = new System.Windows.Forms.TextBox();
             this.cb_IsNotUWord = new System.Windows.Forms.CheckBox();
             this.cb_IsNotUDWord = new System.Windows.Forms.CheckBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.cb_ThreadReadOpen = new System.Windows.Forms.CheckBox();
+            this.btn_StopThreadRead = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // connect
@@ -88,7 +91,7 @@
             this.tb_ip.Name = "tb_ip";
             this.tb_ip.Size = new System.Drawing.Size(100, 21);
             this.tb_ip.TabIndex = 5;
-            this.tb_ip.Text = "127.0.0.1";
+            this.tb_ip.Text = "192.168.1.55";
             // 
             // tb_port
             // 
@@ -96,7 +99,7 @@
             this.tb_port.Name = "tb_port";
             this.tb_port.Size = new System.Drawing.Size(100, 21);
             this.tb_port.TabIndex = 6;
-            this.tb_port.Text = "502";
+            this.tb_port.Text = "10002";
             // 
             // tb_ReadBoolAddress
             // 
@@ -119,7 +122,7 @@
             this.tb_ReadWordAddress.Name = "tb_ReadWordAddress";
             this.tb_ReadWordAddress.Size = new System.Drawing.Size(100, 21);
             this.tb_ReadWordAddress.TabIndex = 9;
-            this.tb_ReadWordAddress.Text = "m100";
+            this.tb_ReadWordAddress.Text = "m0";
             // 
             // tb_ReadWordLength
             // 
@@ -191,10 +194,11 @@
             // listBox1
             // 
             this.listBox1.FormattingEnabled = true;
+            this.listBox1.HorizontalScrollbar = true;
             this.listBox1.ItemHeight = 12;
-            this.listBox1.Location = new System.Drawing.Point(30, 350);
+            this.listBox1.Location = new System.Drawing.Point(30, 401);
             this.listBox1.Name = "listBox1";
-            this.listBox1.Size = new System.Drawing.Size(616, 88);
+            this.listBox1.Size = new System.Drawing.Size(616, 208);
             this.listBox1.TabIndex = 20;
             // 
             // btn_WriteDWord
@@ -245,7 +249,7 @@
             this.tb_ReadDWordAddress.Name = "tb_ReadDWordAddress";
             this.tb_ReadDWordAddress.Size = new System.Drawing.Size(100, 21);
             this.tb_ReadDWordAddress.TabIndex = 21;
-            this.tb_ReadDWordAddress.Text = "m100";
+            this.tb_ReadDWordAddress.Text = "m0";
             // 
             // label1
             // 
@@ -331,11 +335,44 @@
             this.cb_IsNotUDWord.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.cb_IsNotUDWord.UseVisualStyleBackColor = true;
             // 
+            // label7
+            // 
+            this.label7.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.label7.Location = new System.Drawing.Point(28, 351);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(618, 1);
+            this.label7.TabIndex = 36;
+            this.label7.Text = "label7";
+            // 
+            // cb_ThreadReadOpen
+            // 
+            this.cb_ThreadReadOpen.AutoSize = true;
+            this.cb_ThreadReadOpen.Location = new System.Drawing.Point(487, 368);
+            this.cb_ThreadReadOpen.Name = "cb_ThreadReadOpen";
+            this.cb_ThreadReadOpen.Size = new System.Drawing.Size(60, 16);
+            this.cb_ThreadReadOpen.TabIndex = 39;
+            this.cb_ThreadReadOpen.Text = "线程读";
+            this.cb_ThreadReadOpen.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.cb_ThreadReadOpen.UseVisualStyleBackColor = true;
+            // 
+            // btn_StopThreadRead
+            // 
+            this.btn_StopThreadRead.Location = new System.Drawing.Point(553, 364);
+            this.btn_StopThreadRead.Name = "btn_StopThreadRead";
+            this.btn_StopThreadRead.Size = new System.Drawing.Size(93, 23);
+            this.btn_StopThreadRead.TabIndex = 40;
+            this.btn_StopThreadRead.Text = "停止线程";
+            this.btn_StopThreadRead.UseVisualStyleBackColor = true;
+            this.btn_StopThreadRead.Click += new System.EventHandler(this.btn_StopThreadRead_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(674, 450);
+            this.ClientSize = new System.Drawing.Size(674, 618);
+            this.Controls.Add(this.btn_StopThreadRead);
+            this.Controls.Add(this.cb_ThreadReadOpen);
+            this.Controls.Add(this.label7);
             this.Controls.Add(this.cb_IsNotUDWord);
             this.Controls.Add(this.cb_IsNotUWord);
             this.Controls.Add(this.label6);
@@ -407,6 +444,9 @@
         private System.Windows.Forms.TextBox tb_SlaveNum;
         private System.Windows.Forms.CheckBox cb_IsNotUWord;
         private System.Windows.Forms.CheckBox cb_IsNotUDWord;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.CheckBox cb_ThreadReadOpen;
+        private System.Windows.Forms.Button btn_StopThreadRead;
     }
 }
 
