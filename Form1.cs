@@ -437,9 +437,17 @@ namespace InovanceModbusTCP
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void btn_CheckConnect_Click(object sender, EventArgs e)
         {
-            Show(plc.CheckConnect().ToString());
+            bool v = plc.CheckConnect();
+            if (v)
+            {
+                Show("连接正常");
+            }
+            else
+            {
+                Show("连接中断");
+            }
         }
     }
 }
