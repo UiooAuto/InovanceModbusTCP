@@ -63,6 +63,7 @@
             this.label7 = new System.Windows.Forms.Label();
             this.cb_ThreadReadOpen = new System.Windows.Forms.CheckBox();
             this.btn_StopThreadRead = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // connect
@@ -365,11 +366,22 @@
             this.btn_StopThreadRead.UseVisualStyleBackColor = true;
             this.btn_StopThreadRead.Click += new System.EventHandler(this.btn_StopThreadRead_Click);
             // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(553, 65);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(93, 23);
+            this.button1.TabIndex = 41;
+            this.button1.Text = "连接";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(674, 618);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.btn_StopThreadRead);
             this.Controls.Add(this.cb_ThreadReadOpen);
             this.Controls.Add(this.label7);
@@ -447,6 +459,7 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.CheckBox cb_ThreadReadOpen;
         private System.Windows.Forms.Button btn_StopThreadRead;
+        private System.Windows.Forms.Button button1;
     }
 }
 

@@ -144,6 +144,19 @@ namespace InovanceModbusTCP
             }
         }
 
+        public bool CheckConnect()
+        {
+            int v = 0;
+            try
+            {
+                v = socket.Send(new byte[] { 0x00 });
+            }
+            catch
+            {
+            }
+            return v == 1;
+        }
+
         #endregion
 
         public static UInt16 GetSessionNum()
