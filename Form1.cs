@@ -439,7 +439,7 @@ namespace InovanceModbusTCP
 
         private void btn_CheckConnect_Click(object sender, EventArgs e)
         {
-            bool v = plc.CheckConnect();
+            /*bool v = plc.CheckConnect();
             if (v)
             {
                 Show("连接正常");
@@ -447,7 +447,7 @@ namespace InovanceModbusTCP
             else
             {
                 Show("连接中断");
-            }
+            }*/
         }
     }
 }
