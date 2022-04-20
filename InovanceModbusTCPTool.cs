@@ -144,7 +144,7 @@ namespace InovanceModbusTCP
             }
         }
 
-        public bool CheckConnect()
+        /*public bool CheckConnect()
         {
             int v = 0;
             try
@@ -155,7 +155,7 @@ namespace InovanceModbusTCP
             {
             }
             return v == 1;
-        }
+        }*/
 
         #endregion
 
