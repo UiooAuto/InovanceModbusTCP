@@ -25,7 +25,7 @@ namespace InovanceModbusTCP
         private int recSessionNum;//接收到的会话号
         private byte[] recData;//接收到的数据包
 
-        public static UInt16 ComSessionNum = 0;//生成用公共会话编号
+        public static UInt16 ComSessionNum = 1;//生成用公共会话编号
 
         #region 构造方法及GetSet
 
@@ -522,6 +522,10 @@ namespace InovanceModbusTCP
             byte[] resultByte = new byte[checkRes.Respones.data[8]];//如果查找成功，则新建结果数组
             Array.ConstrainedCopy(checkRes.Respones.data, 9, resultByte, 0, checkRes.Respones.data[8]);//从结果报文中获取结果内容
             UInt16[] tempArr = BytesToUInt16(resultByte);
+            if (tempArr.Length == 0)
+            {
+                Thread.Sleep(1);
+            }
             readResult.result = new Int16[tempArr.Length];
 
             for (int i = 0; i < tempArr.Length; i++)

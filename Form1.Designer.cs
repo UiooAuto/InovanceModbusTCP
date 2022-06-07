@@ -23,8 +23,8 @@
         #region Windows 窗体设计器生成的代码
 
         /// <summary>
-        /// 设计器支持所需的方法 - 不要修改
-        /// 使用代码编辑器修改此方法的内容。
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent()
         {
@@ -64,11 +64,12 @@
             this.cb_ThreadReadOpen = new System.Windows.Forms.CheckBox();
             this.btn_StopThreadRead = new System.Windows.Forms.Button();
             this.btn_CheckConnect = new System.Windows.Forms.Button();
+            this.listBox2 = new System.Windows.Forms.ListBox();
             this.SuspendLayout();
             // 
             // connect
             // 
-            this.connect.Location = new System.Drawing.Point(553, 39);
+            this.connect.Location = new System.Drawing.Point(484, 39);
             this.connect.Name = "connect";
             this.connect.Size = new System.Drawing.Size(93, 23);
             this.connect.TabIndex = 1;
@@ -78,7 +79,7 @@
             // 
             // btn_ReadBool
             // 
-            this.btn_ReadBool.Location = new System.Drawing.Point(553, 106);
+            this.btn_ReadBool.Location = new System.Drawing.Point(484, 106);
             this.btn_ReadBool.Name = "btn_ReadBool";
             this.btn_ReadBool.Size = new System.Drawing.Size(93, 23);
             this.btn_ReadBool.TabIndex = 3;
@@ -92,7 +93,7 @@
             this.tb_ip.Name = "tb_ip";
             this.tb_ip.Size = new System.Drawing.Size(100, 21);
             this.tb_ip.TabIndex = 5;
-            this.tb_ip.Text = "192.168.1.55";
+            this.tb_ip.Text = "127.0.0.1";
             // 
             // tb_port
             // 
@@ -100,7 +101,7 @@
             this.tb_port.Name = "tb_port";
             this.tb_port.Size = new System.Drawing.Size(100, 21);
             this.tb_port.TabIndex = 6;
-            this.tb_port.Text = "10002";
+            this.tb_port.Text = "502";
             // 
             // tb_ReadBoolAddress
             // 
@@ -131,6 +132,7 @@
             this.tb_ReadWordLength.Name = "tb_ReadWordLength";
             this.tb_ReadWordLength.Size = new System.Drawing.Size(100, 21);
             this.tb_ReadWordLength.TabIndex = 10;
+            this.tb_ReadWordLength.Text = "2";
             // 
             // tb_WriteBoolAddress
             // 
@@ -164,7 +166,7 @@
             // 
             // btn_ReadWord
             // 
-            this.btn_ReadWord.Location = new System.Drawing.Point(553, 196);
+            this.btn_ReadWord.Location = new System.Drawing.Point(484, 196);
             this.btn_ReadWord.Name = "btn_ReadWord";
             this.btn_ReadWord.Size = new System.Drawing.Size(93, 23);
             this.btn_ReadWord.TabIndex = 17;
@@ -174,7 +176,7 @@
             // 
             // btn_WriteBool
             // 
-            this.btn_WriteBool.Location = new System.Drawing.Point(553, 144);
+            this.btn_WriteBool.Location = new System.Drawing.Point(484, 144);
             this.btn_WriteBool.Name = "btn_WriteBool";
             this.btn_WriteBool.Size = new System.Drawing.Size(93, 23);
             this.btn_WriteBool.TabIndex = 18;
@@ -184,7 +186,7 @@
             // 
             // btn_WriteWord
             // 
-            this.btn_WriteWord.Location = new System.Drawing.Point(553, 234);
+            this.btn_WriteWord.Location = new System.Drawing.Point(484, 234);
             this.btn_WriteWord.Name = "btn_WriteWord";
             this.btn_WriteWord.Size = new System.Drawing.Size(93, 23);
             this.btn_WriteWord.TabIndex = 19;
@@ -197,14 +199,14 @@
             this.listBox1.FormattingEnabled = true;
             this.listBox1.HorizontalScrollbar = true;
             this.listBox1.ItemHeight = 12;
-            this.listBox1.Location = new System.Drawing.Point(30, 401);
+            this.listBox1.Location = new System.Drawing.Point(586, 39);
             this.listBox1.Name = "listBox1";
-            this.listBox1.Size = new System.Drawing.Size(616, 208);
+            this.listBox1.Size = new System.Drawing.Size(230, 568);
             this.listBox1.TabIndex = 20;
             // 
             // btn_WriteDWord
             // 
-            this.btn_WriteDWord.Location = new System.Drawing.Point(553, 318);
+            this.btn_WriteDWord.Location = new System.Drawing.Point(484, 318);
             this.btn_WriteDWord.Name = "btn_WriteDWord";
             this.btn_WriteDWord.Size = new System.Drawing.Size(93, 23);
             this.btn_WriteDWord.TabIndex = 26;
@@ -214,7 +216,7 @@
             // 
             // btn_ReadDWord
             // 
-            this.btn_ReadDWord.Location = new System.Drawing.Point(553, 280);
+            this.btn_ReadDWord.Location = new System.Drawing.Point(484, 280);
             this.btn_ReadDWord.Name = "btn_ReadDWord";
             this.btn_ReadDWord.Size = new System.Drawing.Size(93, 23);
             this.btn_ReadDWord.TabIndex = 25;
@@ -257,7 +259,7 @@
             this.label1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.label1.Location = new System.Drawing.Point(30, 91);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(618, 1);
+            this.label1.Size = new System.Drawing.Size(550, 1);
             this.label1.TabIndex = 27;
             this.label1.Text = "label1";
             // 
@@ -266,7 +268,7 @@
             this.label2.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.label2.Location = new System.Drawing.Point(30, 181);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(618, 1);
+            this.label2.Size = new System.Drawing.Size(550, 1);
             this.label2.TabIndex = 28;
             this.label2.Text = "label2";
             // 
@@ -275,7 +277,7 @@
             this.label3.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.label3.Location = new System.Drawing.Point(30, 267);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(618, 1);
+            this.label3.Size = new System.Drawing.Size(550, 1);
             this.label3.TabIndex = 29;
             this.label3.Text = "label3";
             // 
@@ -341,14 +343,16 @@
             this.label7.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.label7.Location = new System.Drawing.Point(28, 351);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(618, 1);
+            this.label7.Size = new System.Drawing.Size(550, 1);
             this.label7.TabIndex = 36;
             this.label7.Text = "label7";
             // 
             // cb_ThreadReadOpen
             // 
             this.cb_ThreadReadOpen.AutoSize = true;
-            this.cb_ThreadReadOpen.Location = new System.Drawing.Point(487, 368);
+            this.cb_ThreadReadOpen.Checked = true;
+            this.cb_ThreadReadOpen.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cb_ThreadReadOpen.Location = new System.Drawing.Point(418, 368);
             this.cb_ThreadReadOpen.Name = "cb_ThreadReadOpen";
             this.cb_ThreadReadOpen.Size = new System.Drawing.Size(60, 16);
             this.cb_ThreadReadOpen.TabIndex = 39;
@@ -358,7 +362,7 @@
             // 
             // btn_StopThreadRead
             // 
-            this.btn_StopThreadRead.Location = new System.Drawing.Point(553, 364);
+            this.btn_StopThreadRead.Location = new System.Drawing.Point(484, 364);
             this.btn_StopThreadRead.Name = "btn_StopThreadRead";
             this.btn_StopThreadRead.Size = new System.Drawing.Size(93, 23);
             this.btn_StopThreadRead.TabIndex = 40;
@@ -368,7 +372,7 @@
             // 
             // btn_CheckConnect
             // 
-            this.btn_CheckConnect.Location = new System.Drawing.Point(553, 65);
+            this.btn_CheckConnect.Location = new System.Drawing.Point(484, 65);
             this.btn_CheckConnect.Name = "btn_CheckConnect";
             this.btn_CheckConnect.Size = new System.Drawing.Size(93, 23);
             this.btn_CheckConnect.TabIndex = 41;
@@ -376,11 +380,22 @@
             this.btn_CheckConnect.UseVisualStyleBackColor = true;
             this.btn_CheckConnect.Click += new System.EventHandler(this.btn_CheckConnect_Click);
             // 
+            // listBox2
+            // 
+            this.listBox2.FormattingEnabled = true;
+            this.listBox2.HorizontalScrollbar = true;
+            this.listBox2.ItemHeight = 12;
+            this.listBox2.Location = new System.Drawing.Point(822, 39);
+            this.listBox2.Name = "listBox2";
+            this.listBox2.Size = new System.Drawing.Size(230, 568);
+            this.listBox2.TabIndex = 42;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(674, 618);
+            this.ClientSize = new System.Drawing.Size(1061, 618);
+            this.Controls.Add(this.listBox2);
             this.Controls.Add(this.btn_CheckConnect);
             this.Controls.Add(this.btn_StopThreadRead);
             this.Controls.Add(this.cb_ThreadReadOpen);
@@ -423,6 +438,8 @@
             this.PerformLayout();
 
         }
+
+        private System.Windows.Forms.ListBox listBox2;
 
         #endregion
         private System.Windows.Forms.Button connect;
