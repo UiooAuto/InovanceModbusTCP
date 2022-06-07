@@ -161,7 +161,12 @@ namespace InovanceModbusTCP
 
         public static UInt16 GetSessionNum()
         {
-            return ComSessionNum++;
+            ComSessionNum++;
+            if (ComSessionNum == 0)
+            {
+                ComSessionNum = 1;
+            }
+            return ComSessionNum;
         }
 
         private bool SendTo(RequestCmd cmd)
