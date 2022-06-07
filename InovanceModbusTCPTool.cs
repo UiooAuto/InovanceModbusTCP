@@ -25,7 +25,7 @@ namespace InovanceModbusTCP
         private int recSessionNum;//接收到的会话号
         private byte[] recData;//接收到的数据包
 
-        public static UInt16 ComSessionNum = 1;//生成用公共会话编号
+        public static UInt16 ComSessionNum = 0;//生成用公共会话编号
 
         #region 构造方法及GetSet
 
@@ -161,7 +161,12 @@ namespace InovanceModbusTCP
 
         public static UInt16 GetSessionNum()
         {
-            return ComSessionNum++;
+            ComSessionNum++;
+            if (ComSessionNum == 0)
+            {
+                ComSessionNum = 1;
+            }
+            return ComSessionNum;
         }
 
         private bool SendTo(RequestCmd cmd)
