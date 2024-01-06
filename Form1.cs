@@ -13,40 +13,87 @@ namespace InovanceModbusTCP
 {
     public partial class Form1 : Form
     {
-        InovanceModbusTCPTool plc;
-        Thread readThread;
+        InovanceModbusTCPTool plc1;
+        InovanceModbusTCPTool plc2;
+        Thread readThread1;
+        Thread readThread2;
+        Thread readThread3;
+
+        Work work;
         public Form1()
         {
             InitializeComponent();
             CheckForIllegalCrossThreadCalls = false;
         }
 
+        #region 多线程测试
 
-        public void Show(string str)
+        public void G1()
+        {
+            while (true)
+            {
+                //Thread.Sleep(10);
+                Show1("T1-" + work.GetA());                
+                //Thread.Sleep(10);
+            }
+        }
+
+        public void G2()
+        {
+            while (true)
+            {
+                //Thread.Sleep(10);
+                Show1("T2-" + work.GetA());
+                //Thread.Sleep(10);
+            }
+        }
+
+        public void G3()
+        {
+            while (true)
+            {
+                //Thread.Sleep(10);
+                Show1("T3-" + work.GetA());
+                //Thread.Sleep(10);
+            }
+        }
+
+        #endregion
+
+        public void Show1(string str)
         {
             listBox1.Items.Add(DateTime.Now.ToString("HH:mm:ss.fff") + "- " + str);
             listBox1.SelectedIndex = listBox1.Items.Count - 1;
+        }
+        
+        public void Show2(string str)
+        {
+            listBox2.Items.Add(DateTime.Now.ToString("HH:mm:ss.fff") + "- " + str);
+            listBox2.SelectedIndex = listBox2.Items.Count - 1;
         }
 
         private void connect_Click(object sender, EventArgs e)
         {
             if (connect.Text == "连接")
             {
-                plc = new InovanceModbusTCPTool(tb_ip.Text, int.Parse(tb_port.Text), byte.Parse(tb_SlaveNum.Text));
-                bool v = plc.Connect();
-                if (!v)
+                plc1 = new InovanceModbusTCPTool(tb_ip.Text, int.Parse(tb_port.Text), byte.Parse(tb_SlaveNum.Text));
+                plc2 = new InovanceModbusTCPTool(tb_ip.Text, int.Parse(tb_port.Text), byte.Parse(tb_SlaveNum.Text));
+                bool v1 = plc1.Connect();
+                //bool v2 = plc2.Connect();
+                if (!(v1 /*& v2*/))
                 {
-                    Show("连接失败");
+                    Show1("连接失败");
                     return;
                 }
                 connect.Text = "断开";
-                Show("连接");
+                Show1("连接");
             }
             else
             {
-                plc.CloseConnect();
+                plc1.CloseConnect();
+                plc2.CloseConnect();
                 connect.Text = "连接";
-                Show("断开");
+                Show1("断开");
             }
         }
 
@@ -55,26 +102,26 @@ namespace InovanceModbusTCP
             int num;
             if (int.TryParse(tb_ReadBoolLength.Text, out num))
             {
-                ReadResult<bool[]> readResult = plc.ReadBoolean(tb_ReadBoolAddress.Text, (UInt16)num);
+                ReadResult<bool[]> readResult = plc1.ReadBoolean(tb_ReadBoolAddress.Text, (UInt16)num);
                 if (readResult.isSuccess)
                 {
-                    Show(JsonConvert.SerializeObject(readResult.result));
+                    Show1(JsonConvert.SerializeObject(readResult.result));
                 }
                 else
                 {
-                    Show("读取失败");
+                    Show1("读取失败");
                 }
             }
             else
             {
-                ReadResult<bool> readResult = plc.ReadBoolean(tb_ReadBoolAddress.Text);
+                ReadResult<bool> readResult = plc1.ReadBoolean(tb_ReadBoolAddress.Text);
                 if (readResult.isSuccess)
                 {
-                    Show(readResult.result.ToString());
+                    Show1(readResult.result.ToString());
                 }
                 else
                 {
-                    Show("读取失败");
+                    Show1("读取失败");
                 }
             }
         }
@@ -86,36 +133,40 @@ namespace InovanceModbusTCP
             {
                 if (cb_ThreadReadOpen.Checked)
                 {
-                    readThread = new Thread(ReadThread1);
-                    readThread.IsBackground = true;
-                    readThread.Start();
+                    readThread1 = new Thread(ReadThread1);
+                    readThread1.IsBackground = true;
+                    readThread1.Start();
+
+                    readThread2 = new Thread(ReadThread11);
+                    readThread2.IsBackground = true;
+                    readThread2.Start();
                     return;
                 }
 
                 if (cb_IsNotUWord.Checked)
                 {
-                    ReadResult<Int16[]> readResult = plc.Read16(tb_ReadWordAddress.Text, (UInt16)num);
+                    ReadResult<Int16[]> readResult = plc1.Read16(tb_ReadWordAddress.Text, (UInt16)num);
 
                     if (readResult.isSuccess)
                     {
-                        Show(JsonConvert.SerializeObject(readResult.result));
+                        Show1(JsonConvert.SerializeObject(readResult.result));
                     }
                     else
                     {
-                        Show("读取失败");
+                        Show1("读取失败");
                     }
                 }
                 else
                 {
-                    ReadResult<UInt16[]> readResult = plc.ReadU16(tb_ReadWordAddress.Text, (UInt16)num);
+                    ReadResult<UInt16[]> readResult = plc1.ReadU16(tb_ReadWordAddress.Text, (UInt16)num);
 
                     if (readResult.isSuccess)
                     {
-                        Show(JsonConvert.SerializeObject(readResult.result));
+                        Show1(JsonConvert.SerializeObject(readResult.result));
                     }
                     else
                     {
-                        Show("读取失败");
+                        Show1("读取失败");
                     }
                 }                
             }
@@ -123,26 +174,26 @@ namespace InovanceModbusTCP
             {
                 if (cb_IsNotUWord.Checked)
                 {
-                    ReadResult<Int16> readResult = plc.Read16(tb_ReadWordAddress.Text);
+                    ReadResult<Int16> readResult = plc1.Read16(tb_ReadWordAddress.Text);
                     if (readResult.isSuccess)
                     {
-                        Show(readResult.result.ToString());
+                        Show1(readResult.result.ToString());
                     }
                     else
                     {
-                        Show("读取失败");
+                        Show1("读取失败");
                     }
                 }
                 else
                 {
-                    ReadResult<UInt16> readResult = plc.ReadU16(tb_ReadWordAddress.Text);
+                    ReadResult<UInt16> readResult = plc1.ReadU16(tb_ReadWordAddress.Text);
                     if (readResult.isSuccess)
                     {
-                        Show(readResult.result.ToString());
+                        Show1(readResult.result.ToString());
                     }
                     else
                     {
-                        Show("读取失败");
+                        Show1("读取失败");
                     }
                 }
             }
@@ -152,14 +203,48 @@ namespace InovanceModbusTCP
         {
             while (true)
             {
-                ReadResult<Int16[]> readResult = plc.Read16(tb_ReadWordAddress.Text, (UInt16)int.Parse(tb_ReadWordLength.Text));
+                ReadResult<Int16[]> readResult = plc1.Read16(tb_ReadWordAddress.Text, (UInt16)int.Parse(tb_ReadWordLength.Text));
                 if (readResult.isSuccess)
                 {
-                    Show(JsonConvert.SerializeObject(readResult.result));
+                    /*if (null == readResult.result || 0 == readResult.result.Length)
+                    {
+                        ;
+                    }*/
+                    string v = JsonConvert.SerializeObject(readResult.result);
+                    if (v == "[]")
+                    {
+                        Thread.Sleep(1);
+                    }
+                    Show1(v);
                 }
                 else
                 {
-                    Show("读取失败");
+                    Show1("读取失败");
+                }
+            }
+        }
+        
+        private void ReadThread11()
+        {
+            while (true)
+            {
+                ReadResult<Int16[]> readResult = plc1.Read16(tb_ReadWordAddress.Text, (UInt16)int.Parse(tb_ReadWordLength.Text));
+                if (readResult.isSuccess)
+                {
+                    /*if (null == readResult.result || 0 == readResult.result.Length)
+                    {
+                        Thread.Sleep(1);
+                    }*/
+                    string v = JsonConvert.SerializeObject(readResult.result);
+                    if (v == "[]")
+                    {
+                        Thread.Sleep(1);
+                    }
+                    Show2(v);
+                }
+                else
+                {
+                    Show2("读取失败");
                 }
             }
         }
@@ -167,14 +252,23 @@ namespace InovanceModbusTCP
         {
             while (true)
             {
-                ReadResult<int[]> readResult = plc.Read32(tb_ReadDWordAddress.Text, (UInt16)int.Parse(tb_ReadDWordLength.Text));
+                ReadResult<int[]> readResult = plc1.Read32(tb_ReadDWordAddress.Text, (UInt16)int.Parse(tb_ReadDWordLength.Text));
                 if (readResult.isSuccess)
                 {
-                    Show(JsonConvert.SerializeObject(readResult.result));
+                    /*if (null == readResult.result || 0 == readResult.result.Length)
+                    {
+                        Thread.Sleep(1);
+                    }*/
+                    string v = JsonConvert.SerializeObject(readResult.result);
+                    if (v == "[]")
+                    {
+                        Thread.Sleep(1);
+                    }
+                    Show1(v);
                 }
                 else
                 {
-                    Show("读取失败");
+                    Show1("读取失败");
                 }
             }
         }
@@ -195,19 +289,19 @@ namespace InovanceModbusTCP
                 {
                     bools[i] = StringToBool(strings[i]);
                 }
-                v = plc.Write(tb_WriteBoolAddress.Text, bools);
+                v = plc1.Write(tb_WriteBoolAddress.Text, bools);
             }
             else
             {
-                v = plc.Write(tb_WriteBoolAddress.Text, StringToBool(tb_WriteBoolValue.Text));
+                v = plc1.Write(tb_WriteBoolAddress.Text, StringToBool(tb_WriteBoolValue.Text));
             }
             if (v)
             {
-                Show("写入成功");
+                Show1("写入成功");
             }
             else
             {
-                Show("写入失败");
+                Show1("写入失败");
             }
         }
 
@@ -231,8 +325,8 @@ namespace InovanceModbusTCP
                     {
                         int16s[i] = Int16.Parse(strings[i]);
                     }
-                    Show("开始写入");
-                    v = plc.Write(tb_WriteWordAddress.Text, int16s);
+                    Show1("开始写入");
+                    v = plc1.Write(tb_WriteWordAddress.Text, int16s);
                 }
                 else
                 {
@@ -241,8 +335,8 @@ namespace InovanceModbusTCP
                     {
                         uint16s[i] = UInt16.Parse(strings[i]);
                     }
-                    Show("开始写入");
-                    v = plc.Write(tb_WriteWordAddress.Text, uint16s);
+                    Show1("开始写入");
+                    v = plc1.Write(tb_WriteWordAddress.Text, uint16s);
                 }
 
             }
@@ -250,23 +344,23 @@ namespace InovanceModbusTCP
             {
                 if (cb_IsNotUWord.Checked)
                 {
-                    Show("开始写入");
-                    v = plc.Write(tb_WriteWordAddress.Text, Int16.Parse(tb_WriteWordValue.Text));
+                    Show1("开始写入");
+                    v = plc1.Write(tb_WriteWordAddress.Text, Int16.Parse(tb_WriteWordValue.Text));
 
                 }
                 else
                 {
-                    Show("开始写入");
-                    v = plc.Write(tb_WriteWordAddress.Text, UInt16.Parse(tb_WriteWordValue.Text));
+                    Show1("开始写入");
+                    v = plc1.Write(tb_WriteWordAddress.Text, UInt16.Parse(tb_WriteWordValue.Text));
                 }
             }
             if (v)
             {
-                Show("写入成功");
+                Show1("写入成功");
             }
             else
             {
-                Show("写入失败");
+                Show1("写入失败");
             }
         }
 
@@ -299,46 +393,46 @@ namespace InovanceModbusTCP
             {
                 if (cb_ThreadReadOpen.Checked)
                 {
-                    readThread = new Thread(ReadThread2);
-                    readThread.IsBackground = true;
-                    readThread.Start();
+                    readThread1 = new Thread(ReadThread2);
+                    readThread1.IsBackground = true;
+                    readThread1.Start();
                     return;
                 }
                 if (cb_IsNotUDWord.Checked)
                 {
-                    ReadResult<int[]> readResult = plc.Read32(tb_ReadDWordAddress.Text, (UInt16)num);
+                    ReadResult<int[]> readResult = plc1.Read32(tb_ReadDWordAddress.Text, (UInt16)num);
                     if (readResult.isSuccess)
                     {
-                        Show(JsonConvert.SerializeObject(readResult.result));
+                        Show1(JsonConvert.SerializeObject(readResult.result));
                     }
                     else
                     {
-                        Show("读取失败");
+                        Show1("读取失败");
                     }
                 }
                 else
                 {
-                    ReadResult<uint[]> readResult = plc.ReadU32(tb_ReadDWordAddress.Text, (UInt16)num);
+                    ReadResult<uint[]> readResult = plc1.ReadU32(tb_ReadDWordAddress.Text, (UInt16)num);
                     if (readResult.isSuccess)
                     {
-                        Show(JsonConvert.SerializeObject(readResult.result));
+                        Show1(JsonConvert.SerializeObject(readResult.result));
                     }
                     else
                     {
-                        Show("读取失败");
+                        Show1("读取失败");
                     }
                 }
             }
             else
             {
-                ReadResult<int> readResult = plc.Read32(tb_ReadDWordAddress.Text);
+                ReadResult<int> readResult = plc1.Read32(tb_ReadDWordAddress.Text);
                 if (readResult.isSuccess)
                 {
-                    Show(readResult.result.ToString());
+                    Show1(readResult.result.ToString());
                 }
                 else
                 {
-                    Show("读取失败");
+                    Show1("读取失败");
                 }
             }
         }
@@ -364,16 +458,16 @@ namespace InovanceModbusTCP
                     {
                         ints[i] = int.Parse(strings[i]);
                     }
-                    Show("开始写入");
-                    v = plc.Write(tb_WriteDWordAddress.Text, ints);
+                    Show1("开始写入");
+                    v = plc1.Write(tb_WriteDWordAddress.Text, ints);
 
                     if (v)
                     {
-                        Show("写入成功");
+                        Show1("写入成功");
                     }
                     else
                     {
-                        Show("写入失败");
+                        Show1("写入失败");
                     }
                 }
                 else
@@ -383,16 +477,16 @@ namespace InovanceModbusTCP
                     {
                         uints[i] = uint.Parse(strings[i]);
                     }
-                    Show("开始写入");
-                    v = plc.Write(tb_WriteDWordAddress.Text, uints);
+                    Show1("开始写入");
+                    v = plc1.Write(tb_WriteDWordAddress.Text, uints);
 
                     if (v)
                     {
-                        Show("写入成功");
+                        Show1("写入成功");
                     }
                     else
                     {
-                        Show("写入失败");
+                        Show1("写入失败");
                     }
                 }
             }
@@ -400,30 +494,30 @@ namespace InovanceModbusTCP
             {
                 if (cb_IsNotUDWord.Checked)
                 {
-                    Show("开始写入");
-                    v = plc.Write(tb_WriteDWordAddress.Text, int.Parse(tb_WriteDWordValue.Text));
+                    Show1("开始写入");
+                    v = plc1.Write(tb_WriteDWordAddress.Text, int.Parse(tb_WriteDWordValue.Text));
 
                     if (v)
                     {
-                        Show("写入成功");
+                        Show1("写入成功");
                     }
                     else
                     {
-                        Show("写入失败");
+                        Show1("写入失败");
                     }
                 }
                 else
                 {
-                    Show("开始写入");
-                    v = plc.Write(tb_WriteDWordAddress.Text, uint.Parse(tb_WriteDWordValue.Text));
+                    Show1("开始写入");
+                    v = plc1.Write(tb_WriteDWordAddress.Text, uint.Parse(tb_WriteDWordValue.Text));
 
                     if (v)
                     {
-                        Show("写入成功");
+                        Show1("写入成功");
                     }
                     else
                     {
-                        Show("写入失败");
+                        Show1("写入失败");
                     }
                 }
             }
@@ -431,9 +525,14 @@ namespace InovanceModbusTCP
 
         private void btn_StopThreadRead_Click(object sender, EventArgs e)
         {
-            if (readThread != null)
+            if (readThread1 != null)
             {
-                readThread.Abort();
+                readThread1.Abort();
+            }
+
+            if (readThread2 != null)
+            {
+                readThread2.Abort();
             }
         }
 

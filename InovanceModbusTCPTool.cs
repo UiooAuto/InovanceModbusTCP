@@ -24,6 +24,7 @@ namespace InovanceModbusTCP
         private int recLength;//接收到的数据长度
         private int recSessionNum;//接收到的会话号
         private byte[] recData;//接收到的数据包
+        static object lock1 = new object();
 
         public static UInt16 ComSessionNum = 0;//生成用公共会话编号
 
@@ -108,9 +109,6 @@ namespace InovanceModbusTCP
                 //MessageBox.Show(e.Message);
                 return false;
             }
-            readThread = new Thread(ReceiveFrom);
-            readThread.IsBackground = true;
-            readThread.Start();
             return true;
         }
 
@@ -193,47 +191,82 @@ namespace InovanceModbusTCP
             }
         }
 
-        private void ReceiveFrom()
+        private byte[] ReceiveFrom(out int recNum)
         {
-            while (true)
+            if (socket != null)
             {
-                byte[] buffer = new byte[4096];
-                int v = 0;
+                byte[] recBytes = new byte[1024];
                 try
                 {
-                    v = socket.Receive(buffer);
+                    recNum = socket.Receive(recBytes);
                 }
-                catch (Exception)
+                catch
                 {
+                    recNum = 0;
+                    return null;
                 }
-                if (v != 0)
+                if (recNum == 0)
                 {
-                    recData = new byte[v];
-                    Array.ConstrainedCopy(buffer, 0, recData, 0, v);
+                    return null;
+                }
+
+                recData = new byte[recNum];
+                Array.ConstrainedCopy(recBytes, 0, recData, 0, recNum);
+                return recData;
+            }
+            else
+            {
+                recNum = 0;
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 与服务器发起一次交互
+        /// </summary>
+        /// <param name="cmd">发送给服务器的命令</param>
+        /// <returns>从服务器接收到的返回数据</returns>
+        public byte[] SendAndRecivefrom(RequestCmd cmd)
+        {
+            int revNum = 0;
+            lock (lock1)
+            {
+                byte[] recBytes;
+                bool sendOK = SendTo(cmd);
+                if (sendOK)
+                {
+                    recBytes = ReceiveFrom(out revNum);
+                    if (revNum == 0)
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        return recBytes;
+                    }
                 }
                 else
                 {
-                    recData = null;
+                    return null;
                 }
             }
         }
 
-        private void CheckRespones(Object o)
+        private Respones CheckRespones(ushort ReuqestSessionNum, byte[] recBytes)
         {
-            CheckRes checkRes = (CheckRes)o;
-            while (true)
+            if (recBytes != null)
             {
-                if (recData != null && checkRes != null)
+                Respones respones = new Respones(recBytes);
+                if (ReuqestSessionNum == respones.recSessionNum)
                 {
-                    Respones respones = new Respones(recData);
-                    if (checkRes.ReuqestSessionNum == respones.recSessionNum)
-                    {
-                        checkRes.Respones = respones;
-                        checkRes.FindSuccess = true;
-                        return;
-                    }
+                    return respones;
+                }
+                else
+                {
+                    return null;
                 }
             }
+            return null;
         }
         #region 读取数据
 
@@ -266,21 +299,16 @@ namespace InovanceModbusTCP
             }
 
             RequestCmd cmd = new RequestCMDRead(slaveNum, cmdCode, address, 1);//创建请求报文
-            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
-            bool v = SendTo(cmd);//发送请求
-            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
-            checkThread.IsBackground = true;
-            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
-            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
-            checkThread.Abort();
+            byte[] bytes = SendAndRecivefrom(cmd);
+            Respones respones = CheckRespones(cmd.sessionNum, bytes);
 
-            readResult.isSuccess = checkRes.FindSuccess;
-            if (!checkRes.FindSuccess)
+            if (null == respones)
             {
                 return readResult;
             }
 
-            readResult.result = ByteToBool(checkRes.Respones.data[9]);
+            readResult.isSuccess = true;
+            readResult.result = ByteToBool(respones.data[9]);
             return readResult;
         }
 
@@ -311,21 +339,16 @@ namespace InovanceModbusTCP
                 return readResult;
             }
             RequestCmd cmd = new RequestCMDRead(slaveNum, cmdCode, address, reqNum);//创建请求报文
-            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
-            bool v = SendTo(cmd);//发送请求
-            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
-            checkThread.IsBackground = true;
-            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
-            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
-            checkThread.Abort();
+            byte[] bytes = SendAndRecivefrom(cmd);
+            Respones respones = CheckRespones(cmd.sessionNum, bytes);
 
-            readResult.isSuccess = checkRes.FindSuccess;//结果查找成功
-            if (!checkRes.FindSuccess)//如果查找不成功则直接返回失败结果
+            if (null == respones)//如果查找不成功则直接返回失败结果
             {
                 return readResult;
             }
-            byte[] resultByte = new byte[checkRes.Respones.data[8]];//如果查找成功，则新建结果数组
-            Array.ConstrainedCopy(checkRes.Respones.data, 9, resultByte, 0, checkRes.Respones.data[8]);//从结果报文中获取结果内容
+            readResult.isSuccess = true;
+            byte[] resultByte = new byte[respones.data[8]];//如果查找成功，则新建结果数组
+            Array.ConstrainedCopy(respones.data, 9, resultByte, 0, respones.data[8]);//从结果报文中获取结果内容
             readResult.result = ByteToBool(resultByte, reqNum);//将byte数组的结果转换为bool数组
             return readResult;
         }
@@ -361,22 +384,17 @@ namespace InovanceModbusTCP
             }
 
             RequestCmd cmd = new RequestCMDRead(slaveNum, cmdCode, address, 1);//创建请求报文
-            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
-            bool v = SendTo(cmd);//发送请求
-            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
-            checkThread.IsBackground = true;
-            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
-            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
-            checkThread.Abort();
+            byte[] bytes = SendAndRecivefrom(cmd);
+            Respones respones = CheckRespones(cmd.sessionNum, bytes);
 
-            readResult.isSuccess = checkRes.FindSuccess;
-            if (!checkRes.FindSuccess)
+            if (null == respones)//如果查找不成功则直接返回失败结果
             {
                 return readResult;
             }
-            readResult.result = checkRes.Respones.data[9];
+            readResult.isSuccess = true;
+            readResult.result = respones.data[9];
             readResult.result = (UInt16)(readResult.result << 8);
-            readResult.result = (UInt16)(readResult.result | checkRes.Respones.data[10]);
+            readResult.result = (UInt16)(readResult.result | respones.data[10]);
 
             return readResult;
         }
@@ -409,21 +427,16 @@ namespace InovanceModbusTCP
             }
 
             RequestCmd cmd = new RequestCMDRead(slaveNum, cmdCode, address, reqNum);//创建请求报文
-            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
-            bool v = SendTo(cmd);//发送请求
-            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
-            checkThread.IsBackground = true;
-            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
-            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
-            checkThread.Abort();
+            byte[] bytes = SendAndRecivefrom(cmd);
+            Respones respones = CheckRespones(cmd.sessionNum, bytes);
 
-            readResult.isSuccess = checkRes.FindSuccess;//结果查找成功
-            if (!checkRes.FindSuccess)//如果查找不成功则直接返回失败结果
+            if (null == respones)//如果查找不成功则直接返回失败结果
             {
                 return readResult;
             }
-            byte[] resultByte = new byte[checkRes.Respones.data[8]];//如果查找成功，则新建结果数组
-            Array.ConstrainedCopy(checkRes.Respones.data, 9, resultByte, 0, checkRes.Respones.data[8]);//从结果报文中获取结果内容
+            readResult.isSuccess = true;
+            byte[] resultByte = new byte[respones.data[8]];//如果查找成功，则新建结果数组
+            Array.ConstrainedCopy(respones.data, 9, resultByte, 0, respones.data[8]);//从结果报文中获取结果内容
             readResult.result = BytesToUInt16(resultByte);
 
             return readResult;
@@ -460,23 +473,18 @@ namespace InovanceModbusTCP
             }
 
             RequestCmd cmd = new RequestCMDRead(slaveNum, cmdCode, address, 1);//创建请求报文
-            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
-            bool v = SendTo(cmd);//发送请求
-            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
-            checkThread.IsBackground = true;
-            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
-            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
-            checkThread.Abort();
+            byte[] bytes = SendAndRecivefrom(cmd);
+            Respones respones = CheckRespones(cmd.sessionNum, bytes);
 
-            readResult.isSuccess = checkRes.FindSuccess;
-            if (!checkRes.FindSuccess)
+            if (null == respones)//如果查找不成功则直接返回失败结果
             {
                 return readResult;
             }
+            readResult.isSuccess = true;
             UInt16 tempValue = 0;
-            tempValue = checkRes.Respones.data[9];
+            tempValue = respones.data[9];
             tempValue = (UInt16)(tempValue << 8);
-            tempValue = (UInt16)(tempValue | (UInt16)checkRes.Respones.data[10]);
+            tempValue = (UInt16)(tempValue | (UInt16)respones.data[10]);
 
             readResult.result = (Int16)tempValue;
 
@@ -511,22 +519,21 @@ namespace InovanceModbusTCP
             }
 
             RequestCmd cmd = new RequestCMDRead(slaveNum, cmdCode, address, reqNum);//创建请求报文
-            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
-            bool v = SendTo(cmd);//发送请求
-            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
-            checkThread.IsBackground = true;
-            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
-            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
-            checkThread.Abort();
+            byte[] bytes = SendAndRecivefrom(cmd);
+            Respones respones = CheckRespones(cmd.sessionNum, bytes);
 
-            readResult.isSuccess = checkRes.FindSuccess;//结果查找成功
-            if (!checkRes.FindSuccess)//如果查找不成功则直接返回失败结果
+            if (null == respones)//如果查找不成功则直接返回失败结果
             {
                 return readResult;
             }
-            byte[] resultByte = new byte[checkRes.Respones.data[8]];//如果查找成功，则新建结果数组
-            Array.ConstrainedCopy(checkRes.Respones.data, 9, resultByte, 0, checkRes.Respones.data[8]);//从结果报文中获取结果内容
+            readResult.isSuccess = true;
+            byte[] resultByte = new byte[respones.data[8]];//如果查找成功，则新建结果数组
+            Array.ConstrainedCopy(respones.data, 9, resultByte, 0, respones.data[8]);//从结果报文中获取结果内容
             UInt16[] tempArr = BytesToUInt16(resultByte);
+            if (tempArr.Length == 0)
+            {
+                Thread.Sleep(1);
+            }
             readResult.result = new Int16[tempArr.Length];
 
             for (int i = 0; i < tempArr.Length; i++)
@@ -667,19 +674,14 @@ namespace InovanceModbusTCP
             }
             UInt16 i = (UInt16)(value ? 0xff00 : 0);
             RequestCmd cmd = new RequestCMDWriteSingle(slaveNum, cmdCode, address, i);
-            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
-            bool v = SendTo(cmd);//发送请求
-            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
-            checkThread.IsBackground = true;
-            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
-            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
-            checkThread.Abort();
+            byte[] bytes = SendAndRecivefrom(cmd);
+            Respones respones = CheckRespones(cmd.sessionNum, bytes);
 
-            if (!checkRes.FindSuccess)
+            if (null == respones)//如果查找不成功则直接返回失败结果
             {
                 return false;
             }
-            return ByteArrayEquals(cmd.GetBytes(), checkRes.Respones.data);
+            return ByteArrayEquals(cmd.GetBytes(), respones.data);
         }
 
         public bool Write(string startAddress, UInt16 value)
@@ -701,19 +703,14 @@ namespace InovanceModbusTCP
                 return false;
             }
             RequestCmd cmd = new RequestCMDWriteSingle(slaveNum, cmdCode, address, value);
-            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
-            bool v = SendTo(cmd);//发送请求
-            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
-            checkThread.IsBackground = true;
-            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
-            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
-            checkThread.Abort();
+            byte[] bytes = SendAndRecivefrom(cmd);
+            Respones respones = CheckRespones(cmd.sessionNum, bytes);
 
-            if (!checkRes.FindSuccess)
+            if (null == respones)//如果查找不成功则直接返回失败结果
             {
                 return false;
             }
-            return ByteArrayEquals(cmd.GetBytes(), checkRes.Respones.data);
+            return ByteArrayEquals(cmd.GetBytes(), respones.data);
         }
 
         public bool Write(string startAddress, Int16 value)
@@ -735,19 +732,14 @@ namespace InovanceModbusTCP
                 return false;
             }
             RequestCmd cmd = new RequestCMDWriteSingle(slaveNum, cmdCode, address, (UInt16)value);
-            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
-            bool v = SendTo(cmd);//发送请求
-            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
-            checkThread.IsBackground = true;
-            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
-            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
-            checkThread.Abort();
+            byte[] bytes = SendAndRecivefrom(cmd);
+            Respones respones = CheckRespones(cmd.sessionNum, bytes);
 
-            if (!checkRes.FindSuccess)
+            if (null == respones)//如果查找不成功则直接返回失败结果
             {
                 return false;
             }
-            return ByteArrayEquals(cmd.GetBytes(), checkRes.Respones.data);
+            return ByteArrayEquals(cmd.GetBytes(), respones.data);
         }
 
         public bool Write(string startAddress, uint value)
@@ -795,15 +787,10 @@ namespace InovanceModbusTCP
             }
             byte[] vs = BoolsToBytes(value);
             RequestCmd cmd = new RequestCMDWriteMore(slaveNum, cmdCode, address, (UInt16)value.Length, vs);
-            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
-            bool v = SendTo(cmd);//发送请求
-            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
-            checkThread.IsBackground = true;
-            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
-            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
-            checkThread.Abort();
+            byte[] bytes = SendAndRecivefrom(cmd);
+            Respones respones = CheckRespones(cmd.sessionNum, bytes);
 
-            if (!checkRes.FindSuccess)
+            if (null == respones)//如果查找不成功则直接返回失败结果
             {
                 return false;
             }
@@ -812,7 +799,7 @@ namespace InovanceModbusTCP
             vs1[4] = 0;
             vs1[5] = 6;
 
-            return ByteArrayEquals(vs1, checkRes.Respones.data);
+            return ByteArrayEquals(vs1, respones.data);
         }
 
         public bool Write(string startAddress, UInt16[] value)
@@ -835,15 +822,10 @@ namespace InovanceModbusTCP
             }
             byte[] vs = Uint16ToBytes(value);
             RequestCmd cmd = new RequestCMDWriteMore(slaveNum, cmdCode, address, (UInt16)value.Length, vs);
-            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
-            bool v = SendTo(cmd);//发送请求
-            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
-            checkThread.IsBackground = true;
-            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
-            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
-            checkThread.Abort();
+            byte[] bytes = SendAndRecivefrom(cmd);
+            Respones respones = CheckRespones(cmd.sessionNum, bytes);
 
-            if (!checkRes.FindSuccess)
+            if (null == respones)//如果查找不成功则直接返回失败结果
             {
                 return false;
             }
@@ -852,7 +834,7 @@ namespace InovanceModbusTCP
             vs1[4] = 0;
             vs1[5] = 6;
 
-            return ByteArrayEquals(vs1, checkRes.Respones.data);
+            return ByteArrayEquals(vs1, respones.data);
         }
 
         public bool Write(string startAddress, Int16[] value)
@@ -875,15 +857,10 @@ namespace InovanceModbusTCP
             }
             byte[] vs = Int16ToBytes(value);
             RequestCmd cmd = new RequestCMDWriteMore(slaveNum, cmdCode, address, (UInt16)value.Length, vs);
-            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
-            bool v = SendTo(cmd);//发送请求
-            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
-            checkThread.IsBackground = true;
-            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
-            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
-            checkThread.Abort();
+            byte[] bytes = SendAndRecivefrom(cmd);
+            Respones respones = CheckRespones(cmd.sessionNum, bytes);
 
-            if (!checkRes.FindSuccess)
+            if (null == respones)//如果查找不成功则直接返回失败结果
             {
                 return false;
             }
@@ -892,7 +869,7 @@ namespace InovanceModbusTCP
             vs1[4] = 0;
             vs1[5] = 6;
 
-            return ByteArrayEquals(vs1, checkRes.Respones.data);
+            return ByteArrayEquals(vs1, respones.data);
         }
 
         public bool Write(string startAddress, uint[] value)
@@ -906,40 +883,6 @@ namespace InovanceModbusTCP
             }
 
             bool v = Write(startAddress, tempArr);
-
-            /*CmdCode cmdCode;
-            ushort address = 0;
-            if (startAddress.Contains("M") || startAddress.Contains("m"))
-            {
-                cmdCode = CmdCode.WriteMoreWordM;
-                address = ushort.Parse(startAddress.Substring(1));
-            }
-            else if (startAddress.Contains("SD") || startAddress.Contains("sd"))
-            {
-                cmdCode = CmdCode.WriteMoreWordSD;
-                address = ushort.Parse(startAddress.Substring(2));
-            }
-            else
-            {
-                return false;
-            }
-            byte[] vs = Uint16ToBytes(tempArr);
-            RequestCmd cmd = new RequestCMDWriteMore(slaveNum, cmdCode, address, (UInt16)(value.Length * 2), vs);
-            CheckRes checkRes = new CheckRes(cmd.sessionNum);//创建检查响应目标对象
-            bool v = SendTo(cmd);//发送请求
-            Thread checkThread = new Thread(CheckRespones);//开启检查响应线程
-            checkThread.IsBackground = true;
-            checkThread.Start(checkRes);//启动线程，参数为具有本会话号的对象
-            checkThread.Join(overTime);//利用检查线程阻塞本线程，超时时间由程序指定
-            if (!checkRes.FindSuccess)
-            {
-                return false;
-            }
-
-            byte[] vs1 = MakeTargetRespones(cmd.GetBytes());
-            vs1[4] = 0;
-            vs1[5] = 6;*/
-
             return v;
         }
 
@@ -1249,25 +1192,14 @@ namespace InovanceModbusTCP
         }
     }
 
-    class CheckRes
-    {
-        private UInt16 reuqestSessionNum;
-        private bool findSuccess = false;
-
-        private Respones respones;
-
-        public CheckRes(ushort reuqestSessionNum)
-        {
-            this.reuqestSessionNum = reuqestSessionNum;
-        }
-
-        public ushort ReuqestSessionNum { get => reuqestSessionNum; set => reuqestSessionNum = value; }
-        public bool FindSuccess { get => findSuccess; set => findSuccess = value; }
-        internal Respones Respones { get => respones; set => respones = value; }
-    }
-
+    /// <summary>
+    /// 响应报文对象
+    /// </summary>
     class Respones
     {
+        /// <summary>
+        /// 会话编号
+        /// </summary>
         public UInt16 recSessionNum;
         public UInt16 tag;
         public UInt16 length;
