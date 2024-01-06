@@ -17,12 +17,48 @@ namespace InovanceModbusTCP
         InovanceModbusTCPTool plc2;
         Thread readThread1;
         Thread readThread2;
+        Thread readThread3;
+
+        Work work;
         public Form1()
         {
             InitializeComponent();
             CheckForIllegalCrossThreadCalls = false;
         }
 
+        #region 多线程测试
+
+        public void G1()
+        {
+            while (true)
+            {
+                //Thread.Sleep(10);
+                Show1("T1-" + work.GetA());                
+                //Thread.Sleep(10);
+            }
+        }
+
+        public void G2()
+        {
+            while (true)
+            {
+                //Thread.Sleep(10);
+                Show1("T2-" + work.GetA());
+                //Thread.Sleep(10);
+            }
+        }
+
+        public void G3()
+        {
+            while (true)
+            {
+                //Thread.Sleep(10);
+                Show1("T3-" + work.GetA());
+                //Thread.Sleep(10);
+            }
+        }
+
+        #endregion
 
         public void Show1(string str)
         {
@@ -179,7 +215,7 @@ namespace InovanceModbusTCP
                     {
                         Thread.Sleep(1);
                     }
-                    Show2(v);
+                    Show1(v);
                 }
                 else
                 {
