@@ -18,7 +18,6 @@ namespace InovanceModbusTCP
         private byte slaveNum;
 
         private IPEndPoint ipEndPoint;//服务器的通信节点
-        private Thread readThread;//接受响应线程
         private Ping ping;//测试网络连接状态
         private int overTime = 5000;//ping的超时时间
         private int recLength;//接收到的数据长度
@@ -116,7 +115,6 @@ namespace InovanceModbusTCP
         {
             if (socket != null)
             {
-                readThread.Abort();
                 try
                 {
                     socket.Shutdown(SocketShutdown.Both);

@@ -64,12 +64,20 @@ namespace InovanceModbusTCP
         {
             listBox1.Items.Add(DateTime.Now.ToString("HH:mm:ss.fff") + "- " + str);
             listBox1.SelectedIndex = listBox1.Items.Count - 1;
+            if (listBox1.Items.Count > 1000)
+            {
+                listBox1.Items.RemoveAt(0);
+            }
         }
         
         public void Show2(string str)
         {
             listBox2.Items.Add(DateTime.Now.ToString("HH:mm:ss.fff") + "- " + str);
             listBox2.SelectedIndex = listBox2.Items.Count - 1;
+            if (listBox2.Items.Count > 1000)
+            {
+                listBox2.Items.RemoveAt(0);
+            }
         }
 
         private void connect_Click(object sender, EventArgs e)
